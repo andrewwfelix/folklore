@@ -12,9 +12,18 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:connectivity": "ts-node src/test-connectivity.ts",
+    "check:db": "ts-node src/check-database-info.ts",
+    "test:blob": "ts-node src/test-vercel-blob.ts"
   },
-  "keywords": ["agents", "orchestration", "nodejs", "vercel", "supabase"],
+  "keywords": [
+    "agents",
+    "orchestration",
+    "nodejs",
+    "vercel",
+    "supabase"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -25,10 +34,14 @@
     "eslint": "^8.0.0",
     "jest": "^29.5.0",
     "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.0.0",
-    "dotenv": "^16.0.0"
+    "@supabase/supabase-js": "^2.51.0",
+    "@vercel/blob": "^1.1.1",
+    "@vercel/node": "^5.3.5",
+    "dotenv": "^16.0.0",
+    "openai": "^5.9.0"
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { Agent, AgentStatus, AgentConfig, AgentType } from '@/types';
+import { AgentStatus, AgentConfig, AgentType } from '@/types';
 
 export abstract class BaseAgent {
   protected id: string;

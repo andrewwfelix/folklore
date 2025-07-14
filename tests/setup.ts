@@ -11,7 +11,7 @@ const originalConsoleWarn = console.warn;
 
 beforeAll(() => {
   // Suppress console output during tests unless explicitly needed
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env['NODE_ENV'] === 'test') {
     console.log = jest.fn();
     console.error = jest.fn();
     console.warn = jest.fn();
@@ -24,6 +24,15 @@ afterAll(() => {
   console.error = originalConsoleError;
   console.warn = originalConsoleWarn;
 });
+
+// Type declarations for global test utilities
+declare global {
+  var testUtils: {
+    createMockAgent: (overrides?: any) => any;
+    createMockWorkflow: (overrides?: any) => any;
+    createMockExecution: (overrides?: any) => any;
+  };
+}
 
 // Global test utilities
 global.testUtils = {
@@ -60,17 +69,4 @@ global.testUtils = {
     results: [],
     ...overrides
   })
-};
-
-// Type declarations for global test utilities
-declare global {
-  namespace NodeJS {
-    interface Global {
-      testUtils: {
-        createMockAgent: (overrides?: any) => any;
-        createMockWorkflow: (overrides?: any) => any;
-        createMockExecution: (overrides?: any) => any;
-      };
-    }
-  }
-} 
+}; 
