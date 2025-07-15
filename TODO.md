@@ -12,8 +12,8 @@
 - [ ] **Issue Severity Mapping**: Map issue severity (Critical/Major/Minor) to priority levels for agent routing
 
 ### Phase 2: Intelligent Routing
-- [ ] **Feedback Routing Logic**: Route issues to appropriate agents (Name → LoreAgent, Balance → StatBlockAgent, etc.)
-- [ ] **Action Plan Generation**: Create specific instructions for each agent based on QA feedback
+- [x] **Feedback Routing Logic**: Route issues to appropriate agents (Name → LoreAgent, Balance → StatBlockAgent, etc.)
+- [x] **Action Plan Generation**: Create specific instructions for each agent based on QA feedback
 
 ### Phase 3: Iterative Refinement Loop
 - [ ] **QA Review Loop**: Implement iterative process (max 3 iterations) with QA review at each step
