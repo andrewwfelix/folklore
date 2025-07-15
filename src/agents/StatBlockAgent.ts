@@ -7,7 +7,11 @@ export interface StatBlockAgentInput {
   lore: string;
   name?: string;
   region?: string;
-  qaFeedback?: string;
+  /**
+   * QA feedback for refinement. Can be a string or array of issues.
+   * Example: 'Challenge rating is too low. Adjust for better balance.'
+   */
+  qaFeedback?: string | string[];
 }
 
 export class StatBlockAgent extends BaseAgent {
@@ -25,7 +29,7 @@ export class StatBlockAgent extends BaseAgent {
       await this.start();
       this.log('Generating stat block for monster');
       if (input.qaFeedback) {
-        this.log(`[QA Feedback] ${input.qaFeedback}`);
+        this.log(`[QA Feedback] ${Array.isArray(input.qaFeedback) ? input.qaFeedback.join('; ') : input.qaFeedback}`);
       }
 
       const statblock = await this.generateStatBlock(input);
@@ -40,10 +44,22 @@ export class StatBlockAgent extends BaseAgent {
     }
   }
 
-  private async generateStatBlock(input: { lore: string; name?: string; region?: string }): Promise<any> {
-    const prompt = buildStatBlockPrompt({
+  /**
+   * Generates stat block, incorporating QA feedback as explicit instructions if provided.
+   */
+  private async generateStatBlock(input: { lore: string; name?: string; region?: string; qaFeedback?: string | string[] }): Promise<any> {
+    // Build the base prompt
+    let prompt = buildStatBlockPrompt({
       lore: input.lore
     });
+
+    // If QA feedback is present, append actionable instructions
+    if (input.qaFeedback) {
+      const feedback = Array.isArray(input.qaFeedback)
+        ? input.qaFeedback.join(' ')
+        : input.qaFeedback;
+      prompt += `\n\n---\nQA Feedback for Revision: ${feedback}\nPlease address this feedback in your stat block. If balance or CR is mentioned, adjust accordingly.`;
+    }
     
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4',

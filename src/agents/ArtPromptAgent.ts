@@ -7,7 +7,11 @@ export interface ArtPromptAgentInput {
   name: string;
   region: string;
   lore: string;
-  qaFeedback?: string;
+  /**
+   * QA feedback for refinement. Can be a string or array of issues.
+   * Example: 'Make the art style more culturally authentic.'
+   */
+  qaFeedback?: string | string[];
 }
 
 export class ArtPromptAgent extends BaseAgent {
@@ -25,7 +29,7 @@ export class ArtPromptAgent extends BaseAgent {
       await this.start();
       this.log('Generating art prompt for monster');
       if (input.qaFeedback) {
-        this.log(`[QA Feedback] ${input.qaFeedback}`);
+        this.log(`[QA Feedback] ${Array.isArray(input.qaFeedback) ? input.qaFeedback.join('; ') : input.qaFeedback}`);
       }
 
       const artPrompt = await this.generateArtPrompt(input);
@@ -40,12 +44,24 @@ export class ArtPromptAgent extends BaseAgent {
     }
   }
 
-  private async generateArtPrompt(input: { name: string; region: string; lore: string }): Promise<any> {
-    const prompt = buildArtPrompt({
+  /**
+   * Generates art prompt, incorporating QA feedback as explicit instructions if provided.
+   */
+  private async generateArtPrompt(input: { name: string; region: string; lore: string; qaFeedback?: string | string[] }): Promise<any> {
+    // Build the base prompt
+    let prompt = buildArtPrompt({
       name: input.name,
       region: input.region,
       lore: input.lore
     });
+
+    // If QA feedback is present, append actionable instructions
+    if (input.qaFeedback) {
+      const feedback = Array.isArray(input.qaFeedback)
+        ? input.qaFeedback.join(' ')
+        : input.qaFeedback;
+      prompt += `\n\n---\nQA Feedback for Revision: ${feedback}\nPlease address this feedback in your art prompt. If style or cultural authenticity is mentioned, adjust accordingly.`;
+    }
     
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4',

@@ -4,7 +4,11 @@ import { buildLorePrompt } from '@/prompts';
 import OpenAI from 'openai';
 
 export interface LoreAgentInput extends MonsterGenerationInput {
-  qaFeedback?: string;
+  /**
+   * QA feedback for refinement. Can be a string or array of issues.
+   * Example: 'Name is too generic. Make it more distinctive.'
+   */
+  qaFeedback?: string | string[];
 }
 
 export class LoreAgent extends BaseAgent {
@@ -22,7 +26,7 @@ export class LoreAgent extends BaseAgent {
       await this.start();
       this.log('Generating lore for monster');
       if (input.qaFeedback) {
-        this.log(`[QA Feedback] ${input.qaFeedback}`);
+        this.log(`[QA Feedback] ${Array.isArray(input.qaFeedback) ? input.qaFeedback.join('; ') : input.qaFeedback}`);
       }
 
       const lore = await this.generateLore(input);
@@ -43,12 +47,24 @@ export class LoreAgent extends BaseAgent {
     }
   }
 
+  /**
+   * Generates lore, incorporating QA feedback as explicit instructions if provided.
+   */
   private async generateLore(input: LoreAgentInput): Promise<string> {
-    const prompt = buildLorePrompt({
+    // Build the base prompt
+    let prompt = buildLorePrompt({
       region: input.region,
       ...(input.tags && { tags: input.tags }),
       ...(input.description && { description: input.description })
     });
+
+    // If QA feedback is present, append actionable instructions
+    if (input.qaFeedback) {
+      const feedback = Array.isArray(input.qaFeedback)
+        ? input.qaFeedback.join(' ')
+        : input.qaFeedback;
+      prompt += `\n\n---\nQA Feedback for Revision: ${feedback}\nPlease address this feedback in your response. If the name is too generic, generate a more distinctive, culturally authentic name and lore.`;
+    }
     
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4',

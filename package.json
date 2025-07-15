@@ -30,7 +30,8 @@
     "test:qa-classification": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-qa-classification.ts",
     "test:refinement-loop": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-refinement-loop.ts",
     "test:phase2-routing": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-phase2-routing.ts",
-    "test:phase3-refinement": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-phase3-refinement.ts"
+    "test:phase3-refinement": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-phase3-refinement.ts",
+    "test:phase4-agents": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-phase4-agents.ts"
   },
   "keywords": [
     "agents",

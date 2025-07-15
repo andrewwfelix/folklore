@@ -7,7 +7,11 @@ export interface CitationAgentInput {
   name: string;
   region: string;
   description: string;
-  qaFeedback?: string;
+  /**
+   * QA feedback for refinement. Can be a string or array of issues.
+   * Example: 'Add more scholarly sources.'
+   */
+  qaFeedback?: string | string[];
 }
 
 export class CitationAgent extends BaseAgent {
@@ -25,7 +29,7 @@ export class CitationAgent extends BaseAgent {
       await this.start();
       this.log('Generating citations for monster');
       if (input.qaFeedback) {
-        this.log(`[QA Feedback] ${input.qaFeedback}`);
+        this.log(`[QA Feedback] ${Array.isArray(input.qaFeedback) ? input.qaFeedback.join('; ') : input.qaFeedback}`);
       }
 
       const citations = await this.generateCitations(input);
@@ -40,12 +44,24 @@ export class CitationAgent extends BaseAgent {
     }
   }
 
-  private async generateCitations(input: { name: string; region: string; description: string }): Promise<any[]> {
-    const prompt = buildCitationPrompt({
+  /**
+   * Generates citations, incorporating QA feedback as explicit instructions if provided.
+   */
+  private async generateCitations(input: { name: string; region: string; description: string; qaFeedback?: string | string[] }): Promise<any[]> {
+    // Build the base prompt
+    let prompt = buildCitationPrompt({
       name: input.name,
       region: input.region,
       description: input.description
     });
+
+    // If QA feedback is present, append actionable instructions
+    if (input.qaFeedback) {
+      const feedback = Array.isArray(input.qaFeedback)
+        ? input.qaFeedback.join(' ')
+        : input.qaFeedback;
+      prompt += `\n\n---\nQA Feedback for Revision: ${feedback}\nPlease address this feedback in your citations. If more scholarly or primary sources are needed, include them.`;
+    }
     
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4',
