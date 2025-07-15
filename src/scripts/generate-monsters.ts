@@ -1,5 +1,8 @@
 #!/usr/bin/env ts-node
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { config, validateConfig, estimateTotalCost } from '../config';
 import { isDevelopment } from '../config';
 

@@ -39,8 +39,8 @@ export class LoreAgent extends BaseAgent {
   private async generateLore(input: MonsterGenerationInput): Promise<string> {
     const prompt = buildLorePrompt({
       region: input.region,
-      tags: input.tags,
-      description: input.description
+      ...(input.tags && { tags: input.tags }),
+      ...(input.description && { description: input.description })
     });
     
     const response = await this.openai.chat.completions.create({

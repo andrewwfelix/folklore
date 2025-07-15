@@ -52,8 +52,8 @@ export interface Config {
 
 export const config: Config = {
   supabase: {
-    url: process.env['SUPABASE_URL'] || '',
-    serviceKey: process.env['SUPABASE_SERVICE_KEY'] || '',
+    url: process.env['NEXT_PUBLIC_SUPABASE_URL'] || process.env['SUPABASE_URL'] || '',
+    serviceKey: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || process.env['SUPABASE_SERVICE_KEY'] || '',
   },
   
   openai: {
