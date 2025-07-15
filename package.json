@@ -15,7 +15,11 @@
     "type-check": "tsc --noEmit",
     "test:connectivity": "ts-node src/test-connectivity.ts",
     "check:db": "ts-node src/check-database-info.ts",
-    "test:blob": "ts-node src/test-vercel-blob.ts"
+    "check:folklore": "ts-node src/inspect-folklore-schema.ts",
+    "test:blob": "ts-node src/test-vercel-blob.ts",
+    "generate": "ts-node src/scripts/generate-monsters.ts",
+    "test:config": "ts-node src/scripts/test-config.ts",
+    "debug:env": "ts-node src/debug-env.ts"
   },
   "keywords": [
     "agents",
