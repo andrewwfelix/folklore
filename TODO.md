@@ -5,9 +5,31 @@
 ### High Priority
 - [ ] **QA Feedback Loop**: Ensure that if the QA agent has feedback, the system provides an opportunity to send that feedback back into the relevant agent(s) for revision or rerun.
 - [ ] **QA Feedback Incorporation**: Implement mechanism to automatically rerun specific agents (e.g., Lore Agent for name issues, StatBlock Agent for balance issues) based on QA feedback.
-- [ ] **QA Feedback Routing Algorithm**: Implement intelligent routing of QA feedback to specific agents based on issue categories (Name Distinctiveness → LoreAgent, Stat Block Balance → StatBlockAgent, etc.).
-- [ ] **Iterative Refinement Process**: Add iterative monster generation with QA review loops (max 3 iterations) to automatically improve monster quality.
-- [ ] **Agent-Specific Feedback Handling**: Enhance each agent to accept and act on QA feedback (LoreAgent for name/lore issues, StatBlockAgent for balance issues, etc.).
+## QA Algorithm Implementation
+
+### Phase 1: Analysis & Classification
+- [ ] **QA Issue Classification**: Categorize QA issues by type (name, balance, cultural, art) and identify target agents
+- [ ] **Issue Severity Mapping**: Map issue severity (Critical/Major/Minor) to priority levels for agent routing
+
+### Phase 2: Intelligent Routing
+- [ ] **Feedback Routing Logic**: Route issues to appropriate agents (Name → LoreAgent, Balance → StatBlockAgent, etc.)
+- [ ] **Action Plan Generation**: Create specific instructions for each agent based on QA feedback
+
+### Phase 3: Iterative Refinement Loop
+- [ ] **QA Review Loop**: Implement iterative process (max 3 iterations) with QA review at each step
+- [ ] **Success Criteria**: Define when to stop (QA score ≥ 4.0 OR max iterations reached)
+- [ ] **Fallback Strategy**: Return best version if improvements fail
+
+### Phase 4: Agent Enhancement
+- [ ] **LoreAgent Enhancement**: Accept QA feedback for name distinctiveness and cultural authenticity
+- [ ] **StatBlockAgent Enhancement**: Accept QA feedback for balance and CR adjustments
+- [ ] **ArtPromptAgent Enhancement**: Accept QA feedback for art style and description improvements
+- [ ] **Agent Feedback Integration**: Modify each agent to handle specific feedback types
+
+### Phase 5: Quality Tracking
+- [ ] **Metrics Collection**: Track success rates, iterations per monster, agent effectiveness
+- [ ] **Performance Monitoring**: Monitor common issues and improvement rates
+- [ ] **System Optimization**: Use metrics to refine the algorithm
 
 ### Optional Tasks
 - [ ] **PDF Blob Upload Script**: Create a script to upload any local PDF file to blob storage for manual testing.
