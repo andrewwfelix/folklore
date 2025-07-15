@@ -19,6 +19,8 @@ Requirements:
 - Avoid clichés and generic fantasy art descriptions
 - Match art style to the myth's region when possible
 
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+
 Return the art prompt in valid JSON format:
 {
   "prompt": "Detailed visual description for AI image generation",

@@ -26,6 +26,8 @@ For each issue found, provide:
 - **Issue**: Description of the problem
 - **Suggestion**: How to fix it
 
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+
 Return the QA review in valid JSON format:
 {
   "overallScore": number (1-5),

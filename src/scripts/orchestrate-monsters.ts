@@ -11,6 +11,7 @@ import { ArtPromptAgent } from '../agents/ArtPromptAgent';
 import { QAAgent } from '../agents/QAAgent';
 import { PDFAgent } from '../agents/PDFAgent';
 import { uploadPDF, uploadImage } from '../lib/utils/blob-storage';
+import { generatePDF, generateSimplePDF } from '../lib/utils/pdf-generator';
 
 // Utility: Generate a random region for demo
 const REGIONS = [
@@ -80,18 +81,34 @@ async function orchestrateMonster(index: number) {
   let imageUrl: string | undefined;
   
   try {
-    // For now, create placeholder content for PDF and image
-    // In the future, these would be generated from pdfLayout and artPrompt
-    const pdfContent = Buffer.from(`PDF for ${monsterName}\n\nLore: ${lore}\n\nStats: ${JSON.stringify(statBlockResult.statblock, null, 2)}`);
+    console.log(`[${index}] Generating PDF and uploading files...`);
+    
+    // Generate actual PDF from the layout
+    let pdfContent: Buffer;
+    try {
+      // Try to use the PDF layout from PDFAgent
+      pdfContent = await generatePDF(pdfResult.pdfLayout);
+    } catch (pdfError) {
+      console.log(`[${index}] PDF layout generation failed, using fallback:`, (pdfError as Error).message);
+      // Fallback to simple PDF generation
+      pdfContent = await generateSimplePDF(
+        monsterName,
+        lore,
+        statBlockResult.statblock,
+        citationResult.citations,
+        artPromptResult.artPrompt
+      );
+    }
+    
+    // For now, create placeholder image content
+    // In the future, this would be generated from artPrompt using DALL-E or similar
     const imageContent = Buffer.from(`Placeholder image for ${monsterName}`);
     
-    console.log(`[${index}] Uploading files to blob storage...`);
+    const pdfUploadResult = await uploadPDF(monsterName, pdfContent);
+    const imageUploadResult = await uploadImage(monsterName, imageContent);
     
-    const pdfResult = await uploadPDF(monsterName, pdfContent);
-    const imageResult = await uploadImage(monsterName, imageContent);
-    
-    pdfUrl = pdfResult.url;
-    imageUrl = imageResult.url;
+    pdfUrl = pdfUploadResult.url;
+    imageUrl = imageUploadResult.url;
     
     console.log(`[${index}] Files uploaded: PDF=${pdfUrl}, Image=${imageUrl}`);
   } catch (error) {
@@ -112,6 +129,8 @@ async function orchestrateMonster(index: number) {
     imageUrl
   };
 }
+
+export { orchestrateMonster };
 
 async function main() {
   try {

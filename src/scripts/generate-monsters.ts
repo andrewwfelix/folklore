@@ -5,6 +5,7 @@ dotenv.config({ path: '.env.local' });
 
 import { config, validateConfig, estimateTotalCost } from '../config';
 import { isDevelopment } from '../config';
+import { orchestrateMonster } from './orchestrate-monsters';
 
 async function main() {
   try {
@@ -42,19 +43,35 @@ async function main() {
       }
     }
     
-    console.log(`\n🚀 Ready to generate ${config.generation.count} monster(s)!`);
+    console.log(`\n🚀 Starting generation of ${config.generation.count} monster(s)!`);
     
-    // TODO: Implement actual generation logic
-    console.log(`\n📝 TODO: Implement generation pipeline with:`);
-    console.log(`   • LoreAgent`);
-    console.log(`   • StatBlockAgent`); 
-    console.log(`   • CitationAgent`);
-    console.log(`   • ArtPromptAgent`);
-    console.log(`   • QAAgent`);
-    console.log(`   • PDFAgent`);
+    // Run the orchestrator for each monster
+    const monsters = [];
+    for (let i = 0; i < config.generation.count; i++) {
+      try {
+        console.log(`\n🎭 Generating Monster #${i + 1}...`);
+        const monster = await orchestrateMonster(i + 1);
+        monsters.push(monster);
+        console.log(`✅ Monster #${i + 1} completed: ${monster.name}`);
+      } catch (err) {
+        console.error(`❌ Error generating monster #${i + 1}:`, (err as Error).message);
+      }
+    }
+    
+    console.log(`\n🎉 Generation complete! Generated ${monsters.length} monster(s).`);
+    
+    // Display summary
+    if (monsters.length > 0) {
+      console.log('\n📋 Generated Monsters:');
+      monsters.forEach((monster, index) => {
+        console.log(`   ${index + 1}. ${monster.name} (${monster.region})`);
+        if (monster.pdfUrl) console.log(`      PDF: ${monster.pdfUrl}`);
+        if (monster.imageUrl) console.log(`      Image: ${monster.imageUrl}`);
+      });
+    }
     
   } catch (error) {
-    console.error('❌ Configuration Error:', (error as Error).message);
+    console.error('❌ Generation Error:', (error as Error).message);
     process.exit(1);
   }
 }

@@ -18,6 +18,8 @@ Requirements:
 - Ensure all values are reasonable for the CR
 - Follow D&D 5e formatting conventions
 
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+
 Return the stat block in valid JSON format with the following structure:
 {
   "armorClass": number,

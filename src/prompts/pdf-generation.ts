@@ -23,6 +23,8 @@ Requirements:
 - List citations in a clean, academic format
 - Include art description and style information
 
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+
 Return the PDF layout specification in valid JSON format:
 {
   "title": "Monster Name",

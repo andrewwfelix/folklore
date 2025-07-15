@@ -82,11 +82,62 @@ export class PDFAgent extends BaseAgent {
         throw new Error('No valid JSON found in response');
       }
 
+      // Try to parse the JSON
       const pdfLayout = JSON.parse(jsonMatch[0]);
       return pdfLayout;
     } catch (parseError) {
-      this.log('Failed to parse PDF layout JSON, retrying...');
-      throw new Error(`Invalid JSON in PDF layout response: ${parseError}`);
+      this.log('Failed to parse PDF layout JSON, creating fallback layout...');
+      
+      // Create a fallback PDF layout if JSON parsing fails
+      const fallbackLayout = {
+        title: input.name,
+        sections: [
+          {
+            name: 'Lore',
+            content: input.lore,
+            styling: {
+              font: 'Times New Roman',
+              size: '12pt',
+              alignment: 'left'
+            }
+          },
+          {
+            name: 'Stat Block',
+            content: JSON.stringify(input.statblock, null, 2),
+            styling: {
+              font: 'Courier New',
+              size: '10pt',
+              alignment: 'left'
+            }
+          },
+          {
+            name: 'Citations',
+            content: JSON.stringify(input.citations, null, 2),
+            styling: {
+              font: 'Arial',
+              size: '10pt',
+              alignment: 'left'
+            }
+          },
+          {
+            name: 'Art',
+            content: JSON.stringify(input.artPrompt, null, 2),
+            styling: {
+              font: 'Times New Roman',
+              size: '11pt',
+              alignment: 'left'
+            }
+          }
+        ],
+        overallStyling: {
+          theme: 'default',
+          margins: '1 inch all sides',
+          pageSize: 'A4'
+        }
+      };
+      
+      this.log('Using fallback PDF layout due to JSON parsing error');
+      return fallbackLayout;
     }
   }
 } 
