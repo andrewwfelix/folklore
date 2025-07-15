@@ -3,6 +3,13 @@ import { AgentType } from '@/types';
 import { buildCitationPrompt } from '@/prompts';
 import OpenAI from 'openai';
 
+export interface CitationAgentInput {
+  name: string;
+  region: string;
+  description: string;
+  qaFeedback?: string;
+}
+
 export class CitationAgent extends BaseAgent {
   private openai: OpenAI;
 
@@ -13,10 +20,13 @@ export class CitationAgent extends BaseAgent {
     });
   }
 
-  async execute(input: { name: string; region: string; description: string }): Promise<{ citations: any[] }> {
+  async execute(input: CitationAgentInput): Promise<{ citations: any[] }> {
     try {
       await this.start();
       this.log('Generating citations for monster');
+      if (input.qaFeedback) {
+        this.log(`[QA Feedback] ${input.qaFeedback}`);
+      }
 
       const citations = await this.generateCitations(input);
       

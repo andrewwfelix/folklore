@@ -3,6 +3,13 @@ import { AgentType } from '@/types';
 import { buildArtPrompt } from '@/prompts';
 import OpenAI from 'openai';
 
+export interface ArtPromptAgentInput {
+  name: string;
+  region: string;
+  lore: string;
+  qaFeedback?: string;
+}
+
 export class ArtPromptAgent extends BaseAgent {
   private openai: OpenAI;
 
@@ -13,10 +20,13 @@ export class ArtPromptAgent extends BaseAgent {
     });
   }
 
-  async execute(input: { name: string; region: string; lore: string }): Promise<{ artPrompt: any }> {
+  async execute(input: ArtPromptAgentInput): Promise<{ artPrompt: any }> {
     try {
       await this.start();
       this.log('Generating art prompt for monster');
+      if (input.qaFeedback) {
+        this.log(`[QA Feedback] ${input.qaFeedback}`);
+      }
 
       const artPrompt = await this.generateArtPrompt(input);
       

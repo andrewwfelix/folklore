@@ -26,7 +26,9 @@
     "test:artprompt": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-artprompt-agent.ts",
     "test:qa": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-qa-agent.ts",
     "test:pdf": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-pdf-agent.ts",
-    "test:pdf-generation": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-pdf-generation.ts"
+    "test:pdf-generation": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-pdf-generation.ts",
+    "test:qa-classification": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-qa-classification.ts",
+    "test:refinement-loop": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-refinement-loop.ts"
   },
   "keywords": [
     "agents",

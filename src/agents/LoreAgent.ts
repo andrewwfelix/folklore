@@ -3,6 +3,10 @@ import { AgentType, Monster, MonsterGenerationInput } from '@/types';
 import { buildLorePrompt } from '@/prompts';
 import OpenAI from 'openai';
 
+export interface LoreAgentInput extends MonsterGenerationInput {
+  qaFeedback?: string;
+}
+
 export class LoreAgent extends BaseAgent {
   private openai: OpenAI;
 
@@ -13,10 +17,13 @@ export class LoreAgent extends BaseAgent {
     });
   }
 
-  async execute(input: MonsterGenerationInput): Promise<Partial<Monster>> {
+  async execute(input: LoreAgentInput): Promise<Partial<Monster>> {
     try {
       await this.start();
       this.log('Generating lore for monster');
+      if (input.qaFeedback) {
+        this.log(`[QA Feedback] ${input.qaFeedback}`);
+      }
 
       const lore = await this.generateLore(input);
       
@@ -36,7 +43,7 @@ export class LoreAgent extends BaseAgent {
     }
   }
 
-  private async generateLore(input: MonsterGenerationInput): Promise<string> {
+  private async generateLore(input: LoreAgentInput): Promise<string> {
     const prompt = buildLorePrompt({
       region: input.region,
       ...(input.tags && { tags: input.tags }),

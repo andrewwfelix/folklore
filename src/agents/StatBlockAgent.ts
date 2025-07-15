@@ -3,6 +3,13 @@ import { AgentType } from '@/types';
 import { buildStatBlockPrompt } from '@/prompts';
 import OpenAI from 'openai';
 
+export interface StatBlockAgentInput {
+  lore: string;
+  name?: string;
+  region?: string;
+  qaFeedback?: string;
+}
+
 export class StatBlockAgent extends BaseAgent {
   private openai: OpenAI;
 
@@ -13,10 +20,13 @@ export class StatBlockAgent extends BaseAgent {
     });
   }
 
-  async execute(input: { lore: string; name?: string; region?: string }): Promise<{ statblock: any }> {
+  async execute(input: StatBlockAgentInput): Promise<{ statblock: any }> {
     try {
       await this.start();
       this.log('Generating stat block for monster');
+      if (input.qaFeedback) {
+        this.log(`[QA Feedback] ${input.qaFeedback}`);
+      }
 
       const statblock = await this.generateStatBlock(input);
       
