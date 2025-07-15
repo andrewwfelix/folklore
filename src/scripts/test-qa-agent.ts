@@ -12,8 +12,8 @@ async function testQAAgent() {
   try {
     // Use comprehensive sample input for testing QA review
     const testInput = {
-      name: 'Kitsune-no-Mori',
-      region: 'Japan',
+      name: 'Troll', // Generic name to test distinctiveness check
+      region: 'Norse',
       lore: 'A nine-tailed fox yokai that dwells in sacred groves and tests the purity of travelers. The creature takes the form of a fox with nine distinct tails, each representing a different aspect of nature\'s power. Local legends speak of travelers who encountered the Kitsune-no-Mori during twilight hours, when the boundary between the mortal realm and the spirit world grows thin.',
       statblock: {
         armorClass: 16,

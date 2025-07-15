@@ -4,6 +4,7 @@
 
 ### High Priority
 - [ ] **QA Feedback Loop**: Ensure that if the QA agent has feedback, the system provides an opportunity to send that feedback back into the relevant agent(s) for revision or rerun.
+- [ ] **QA Feedback Incorporation**: Implement mechanism to automatically rerun specific agents (e.g., Lore Agent for name issues, StatBlock Agent for balance issues) based on QA feedback.
 
 ### Optional Tasks
 - [ ] **PDF Blob Upload Script**: Create a script to upload any local PDF file to blob storage for manual testing.
@@ -20,4 +21,5 @@
 - PDF generation now uses PDFKit with built-in fonts for maximum compatibility
 - All agents are working and integrated into the orchestrator
 - Blob storage is configured for file uploads
-- QA agent provides feedback but currently no mechanism to act on that feedback 
+- QA agent provides feedback but currently no mechanism to act on that feedback
+- QA agent enhanced to specifically check for name distinctiveness and avoid generic names like "Troll", "Dragon", "Spirit" 

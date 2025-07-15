@@ -14,12 +14,14 @@ Monster Information:
 - Art Prompt: {{artPrompt}}
 
 Review Criteria:
-1. **Cultural Authenticity**: Does the lore match the cultural reference and region?
-2. **Stat Block Balance**: Is the stat block balanced and rule-compliant for D&D 5e?
-3. **Completeness**: Are all required fields present (lore, stats, citations, art)?
-4. **Mechanical Clarity**: Are the mechanics clear and playable?
-5. **Consistency**: Do the lore, stats, and art prompt align with each other?
-6. **Quality**: Is the content well-written and engaging?
+1. **Name Distinctiveness**: Is the monster name unique and distinctive? Avoid generic names like "Troll", "Dragon", "Spirit" without modifiers. Names should reflect cultural origins and unique characteristics.
+2. **Cultural Authenticity**: Does the lore match the cultural reference and region?
+3. **Stat Block Balance**: Is the stat block balanced and rule-compliant for D&D 5e?
+4. **Completeness**: Are all required fields present (lore, stats, citations, art)?
+5. **Mechanical Clarity**: Are the mechanics clear and playable?
+6. **Consistency**: Do the lore, stats, and art prompt align with each other?
+7. **Quality**: Is the content well-written and engaging?
+8. **Name-Lore Alignment**: Does the monster's name match what's described in the lore?
 
 For each issue found, provide:
 - **Severity**: Critical, Major, Minor
