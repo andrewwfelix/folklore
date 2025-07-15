@@ -16,12 +16,16 @@
     "test:connectivity": "ts-node src/test-connectivity.ts",
     "check:db": "ts-node src/check-database-info.ts",
     "check:folklore": "ts-node src/inspect-folklore-schema.ts",
-    "test:blob": "ts-node src/test-vercel-blob.ts",
+    "test:blob": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-blob-storage.ts",
     "generate": "ts-node src/scripts/generate-monsters.ts",
     "test:config": "ts-node src/scripts/test-config.ts",
     "test:lore": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-lore-agent.ts",
     "debug:env": "ts-node src/debug-env.ts",
-    "test:statblock": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-statblock-agent.ts"
+    "test:statblock": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-statblock-agent.ts",
+    "test:citation": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-citation-agent.ts",
+    "test:artprompt": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-artprompt-agent.ts",
+    "test:qa": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-qa-agent.ts",
+    "test:pdf": "ts-node -r tsconfig-paths/register --project tsconfig.json src/scripts/test-pdf-agent.ts"
   },
   "keywords": [
     "agents",

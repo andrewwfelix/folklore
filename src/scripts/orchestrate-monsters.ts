@@ -10,6 +10,7 @@ import { CitationAgent } from '../agents/CitationAgent';
 import { ArtPromptAgent } from '../agents/ArtPromptAgent';
 import { QAAgent } from '../agents/QAAgent';
 import { PDFAgent } from '../agents/PDFAgent';
+import { uploadPDF, uploadImage } from '../lib/utils/blob-storage';
 
 // Utility: Generate a random region for demo
 const REGIONS = [
@@ -74,6 +75,29 @@ async function orchestrateMonster(index: number) {
   });
   console.log(`[${index}] PDF Layout:`, pdfResult.pdfLayout);
 
+  // 7. File Storage (PDF and Image)
+  let pdfUrl: string | undefined;
+  let imageUrl: string | undefined;
+  
+  try {
+    // For now, create placeholder content for PDF and image
+    // In the future, these would be generated from pdfLayout and artPrompt
+    const pdfContent = Buffer.from(`PDF for ${monsterName}\n\nLore: ${lore}\n\nStats: ${JSON.stringify(statBlockResult.statblock, null, 2)}`);
+    const imageContent = Buffer.from(`Placeholder image for ${monsterName}`);
+    
+    console.log(`[${index}] Uploading files to blob storage...`);
+    
+    const pdfResult = await uploadPDF(monsterName, pdfContent);
+    const imageResult = await uploadImage(monsterName, imageContent);
+    
+    pdfUrl = pdfResult.url;
+    imageUrl = imageResult.url;
+    
+    console.log(`[${index}] Files uploaded: PDF=${pdfUrl}, Image=${imageUrl}`);
+  } catch (error) {
+    console.error(`[${index}] File upload failed:`, (error as Error).message);
+  }
+
   // Return all results for this monster
   return {
     name: monsterName,
@@ -83,7 +107,9 @@ async function orchestrateMonster(index: number) {
     citations: citationResult.citations,
     artPrompt: artPromptResult.artPrompt,
     qaReview: qaResult.qaReview,
-    pdfLayout: pdfResult.pdfLayout
+    pdfLayout: pdfResult.pdfLayout,
+    pdfUrl,
+    imageUrl
   };
 }
 

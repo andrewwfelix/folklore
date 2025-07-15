@@ -1,5 +1,5 @@
 import { BaseAgent } from './base/BaseAgent';
-import { AgentType, Monster, MonsterGenerationInput } from '@/types';
+import { AgentType } from '@/types';
 import { buildCitationPrompt } from '@/prompts';
 import OpenAI from 'openai';
 
