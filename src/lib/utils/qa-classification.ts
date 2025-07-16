@@ -6,14 +6,32 @@ import { QAIssue, QAReview } from '@/types/qa-feedback';
 export function classifyQAIssues(qaReview: QAReview): QAIssue[] {
   const issues: QAIssue[] = [];
   
-  qaReview.issues.forEach(issue => {
-      const classifiedIssue: QAIssue = {
-    severity: issue.severity,
-    category: issue.category,
-    issue: issue.issue,
-    suggestion: issue.suggestion,
-    affectedAgent: determineAffectedAgent(issue.category, issue.issue) as 'LoreAgent' | 'StatBlockAgent' | 'CitationAgent' | 'ArtPromptAgent'
-  };
+  console.log('🔍 Debug: QA Review structure:', JSON.stringify(qaReview, null, 2));
+  
+  if (!qaReview.issues || !Array.isArray(qaReview.issues)) {
+    console.warn('QA review has no issues array or issues is not an array');
+    return issues;
+  }
+  
+  qaReview.issues.forEach((rawIssue: any, index: number) => {
+    console.log(`🔍 Debug: Raw issue ${index}:`, JSON.stringify(rawIssue, null, 2));
+    
+    // Map the raw issue properties to the expected QAIssue interface
+    const classifiedIssue: QAIssue = {
+      severity: rawIssue.severity || 'Minor',
+      category: rawIssue.category || 'Quality',
+      issue: rawIssue.issue || rawIssue.description || 'Unknown issue',
+      suggestion: rawIssue.suggestion || rawIssue.recommendation || 'No suggestion provided',
+      affectedAgent: determineAffectedAgent(rawIssue.category, rawIssue.issue || rawIssue.description) as 'LoreAgent' | 'StatBlockAgent' | 'CitationAgent' | 'ArtPromptAgent'
+    };
+    
+    // Add instruction if not present
+    if (!classifiedIssue.instruction) {
+      classifiedIssue.instruction = generateSpecificInstruction(classifiedIssue);
+    }
+    
+    console.log(`🔍 Debug: Classified issue ${index}:`, JSON.stringify(classifiedIssue, null, 2));
+    
     issues.push(classifiedIssue);
   });
   

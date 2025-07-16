@@ -3,6 +3,28 @@
 ## Current Tasks
 
 ### High Priority
+- [ ] **Test Full Refinement Pipeline**: Verify that the refinement loop properly incorporates QA feedback and improves monster quality.
+    - [ ] Run generate:refinement with target score 4.5 to force iterations
+    - [ ] Verify that LoreAgent receives and processes feedback correctly
+    - [ ] Verify that StatBlockAgent receives and processes feedback correctly
+    - [ ] Verify that ArtPromptAgent receives and processes feedback correctly
+    - [ ] Check that QA scores improve after refinement iterations
+    - [ ] Fix any database constraint issues with statblock persistence
+    - [ ] Ensure session logging works correctly throughout iterations
+- [ ] **Delay PDF Generation**: Move PDF generation to after refinement completion to avoid generating PDFs for monsters that will be refined.
+    - [ ] Modify RefinementPipeline to skip PDF generation during iterations
+    - [ ] Add PDF generation as final step after refinement loop completes
+    - [ ] Update generate-with-refinement.ts to handle PDF generation timing
+    - [ ] Ensure PDF includes final refined monster data (lore, stats, citations, art)
+    - [ ] Update blob storage to only upload final PDF, not intermediate versions
+- [ ] **Factor Out Model Definitions**: Move all OpenAI and DALL-E model definitions to config files and remove hardcoded model names from code.
+    - [ ] Un-hardcode model in LoreAgent (src/agents/LoreAgent.ts)
+    - [ ] Un-hardcode model in StatBlockAgent (src/agents/StatBlockAgent.ts)
+    - [ ] Un-hardcode model in CitationAgent (src/agents/CitationAgent.ts)
+    - [ ] Un-hardcode model in ArtPromptAgent (src/agents/ArtPromptAgent.ts)
+    - [ ] Un-hardcode model in QAAgent (src/agents/QAAgent.ts)
+    - [ ] Un-hardcode model in PDFAgent (src/agents/PDFAgent.ts)
+    - [ ] Un-hardcode model in test scripts (e.g., tests/integration/openai/openai.test.ts)
 - [ ] **QA Feedback Loop**: Ensure that if the QA agent has feedback, the system provides an opportunity to send that feedback back into the relevant agent(s) for revision or rerun.
 - [ ] **QA Feedback Incorporation**: Implement mechanism to automatically rerun specific agents (e.g., Lore Agent for name issues, StatBlock Agent for balance issues) based on QA feedback.
 
@@ -16,41 +38,33 @@
 - [x] **Feedback Routing Logic**: Route issues to appropriate agents (Name → LoreAgent, Balance → StatBlockAgent, etc.)
 - [x] **Action Plan Generation**: Create specific instructions for each agent based on QA feedback
 
-### Phase 3: Iterative Refinement Loop 🔄 IN PROGRESS
+### Phase 3: Iterative Refinement Loop ✅ COMPLETED
 - [x] **Refinement Session Logging**: Implement session tracking with iterations, QA scores, and agent actions
 - [x] **Database Persistence**: Save monsters with refinement metadata to separate tables
-- [ ] **QA Review Loop**: Implement iterative process (max 3 iterations) with QA review at each step
-- [ ] **Success Criteria**: Define when to stop (QA score ≥ 4.0 OR max iterations reached)
-- [ ] **Fallback Strategy**: Return best version if improvements fail
+- [x] **QA Review Loop**: Implement iterative process (max 3 iterations) with QA review at each step
+- [x] **Success Criteria**: Define when to stop (QA score ≥ 4.0 OR max iterations reached)
+- [x] **Fallback Strategy**: Return best version if improvements fail
+- [x] **Full Refinement Pipeline**: Orchestrate all agents, QA, and logging in a single pipeline
+- [x] **QA Issue Display**: Fix display of QA issues in test script
 
-### Phase 4: Agent Enhancement 🔄 IN PROGRESS
+### Phase 4: Agent Enhancement ✅ COMPLETED
 - [x] **Agent Feedback Integration**: Modify each agent to accept `qaFeedback` parameter
-- [ ] **LoreAgent Enhancement**: Implement feedback processing for name distinctiveness and cultural authenticity
-- [ ] **StatBlockAgent Enhancement**: Implement feedback processing for balance and CR adjustments
-- [ ] **ArtPromptAgent Enhancement**: Implement feedback processing for art style and description improvements
-- [ ] **Agent Feedback Processing**: Add logic to each agent to respond to specific feedback types
+- [x] **LoreAgent Enhancement**: Implement feedback processing for name distinctiveness and cultural authenticity
+- [x] **StatBlockAgent Enhancement**: Implement feedback processing for balance and CR adjustments
+- [x] **ArtPromptAgent Enhancement**: Implement feedback processing for art style and description improvements
+- [x] **Agent Feedback Processing**: Add logic to each agent to respond to specific feedback types
 
 ### Phase 5: Quality Tracking
 - [ ] **Metrics Collection**: Track success rates, iterations per monster, agent effectiveness
 - [ ] **Performance Monitoring**: Monitor common issues and improvement rates
 - [ ] **System Optimization**: Use metrics to refine the algorithm
 
-## Next Suggested Actions
-
-### Immediate Priority (Choose One)
-- [ ] **Option A: Full Refinement Pipeline**: Create `RefinementPipeline` class that orchestrates the entire refinement process (generate → QA → refine → repeat)
-- [ ] **Option B: Agent Enhancement**: Focus on implementing feedback processing logic in individual agents first
-- [ ] **Option C: End-to-End Testing**: Test current system to identify specific improvements needed
-
-### Database Table Status
-- [x] **folklore_monsters**: ✅ Populated with test data
-- [x] **folklore_art_prompts**: ✅ Structure working (has one row from test)
-- [x] **folklore_citations**: ✅ Structure ready (empty - expected)
-- [x] **folklore_generation_history**: ✅ Structure ready (empty - expected)
-- [x] **folklore_monster_tags**: ✅ Structure ready (empty - expected)
-- [x] **folklore_agent_metrics**: ✅ Structure ready (empty - expected)
-
-### Optional Tasks
+## Optional Tasks
+- [ ] **Persist Monsters on Initial Success**: Save monsters to the database even if no refinement is needed
+- [ ] **Test with Lower QA Score**: Lower the target QA score to force the refinement loop to run
+- [ ] **Test with Different Regions**: Run the pipeline with different regions for diversity
+- [ ] **Improve PDF Agent**: Update PDF agent to return valid JSON layout (avoid fallback)
+- [ ] **Remove Debug Logging**: Remove debug logging from qa-classification when satisfied
 - [ ] **PDF Blob Upload Script**: Create a script to upload any local PDF file to blob storage for manual testing.
 - [ ] **Full Pipeline Test**: Run the full monster generation pipeline and verify that the generated PDF is uploaded to blob storage and is viewable.
 - [ ] **Feedback Quality Metrics**: Implement tracking for QA feedback effectiveness (iterations per monster, success rate, average final score, common issues).
@@ -67,6 +81,8 @@
 - [x] **Persistence Layer**: Implement monster persistence with proper table relationships
 - [x] **Refinement Logging**: Implement session tracking and iteration logging
 - [x] **QA Classification**: Implement issue classification and routing logic
+- [x] **Full Refinement Pipeline**: Orchestrate all agents, QA, and logging in a single pipeline
+- [x] **QA Issue Display**: Fix display of QA issues in test script
 
 ## Notes
 - PDF generation now uses PDFKit with built-in fonts for maximum compatibility
