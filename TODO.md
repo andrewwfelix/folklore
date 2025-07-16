@@ -17,6 +17,13 @@
     - [x] Update generate-with-refinement.ts to handle PDF generation timing
     - [x] Ensure PDF includes final refined monster data (lore, stats, citations, art)
     - [x] Update blob storage to only upload final PDF, not intermediate versions
+- [ ] **Implement Unified AI Provider System**: Create abstraction layer to support multiple AI providers (OpenAI, Anthropic, Together AI, etc.)
+    - [ ] Research and evaluate unified AI API providers (Together AI, OpenRouter, Fireworks AI, etc.)
+    - [ ] Design unified AI client interface
+    - [ ] Implement provider-specific adapters
+    - [ ] Update config system to support multiple providers
+    - [ ] Add environment variables for provider selection
+    - [ ] Test with different providers
 - [ ] **Factor Out Model Definitions**: Move all OpenAI and DALL-E model definitions to config files and remove hardcoded model names from code.
     - [ ] Un-hardcode model in LoreAgent (src/agents/LoreAgent.ts)
     - [ ] Un-hardcode model in StatBlockAgent (src/agents/StatBlockAgent.ts)
@@ -60,6 +67,77 @@
 - [ ] **System Optimization**: Use metrics to refine the algorithm
 
 ## Next Priority Tasks
+
+### Unified AI Provider System
+- [ ] **Research and Evaluate AI Providers**: Comprehensive analysis of unified AI API providers
+    - [ ] **Together AI**: Evaluate pricing, model availability, API quality, and reliability
+    - [ ] **OpenRouter**: Compare aggregation features, supported models, and cost structure
+    - [ ] **Fireworks AI**: Assess their own models vs. third-party integration
+    - [ ] **Anthropic**: Direct Claude API vs. through aggregators
+    - [ ] **Groq**: Evaluate speed vs. cost trade-offs
+    - [ ] **Perplexity AI**: Check their unified API offerings
+    - [ ] **Compare pricing**: Cost per token for different models across providers
+    - [ ] **Compare reliability**: Uptime, response times, error rates
+    - [ ] **Compare features**: Model availability, API consistency, documentation
+    - [ ] **Make recommendation**: Choose best provider based on cost, reliability, and features
+- [x] **Choose OpenRouter**: Selected OpenRouter as the unified AI provider
+- [ ] **Implement OpenRouter Integration**: Complete rework to use OpenRouter with per-component model selection
+    - [ ] **Environment Configuration**: Add OpenRouter API key and model configuration variables
+        - [ ] Add OPENROUTER_API_KEY environment variable
+        - [ ] Add OPENROUTER_BASE_URL environment variable (default: https://openrouter.ai/api/v1)
+        - [ ] Add per-component model variables:
+            - [ ] OPENROUTER_LORE_MODEL (e.g., "anthropic/claude-3-sonnet")
+            - [ ] OPENROUTER_STATBLOCK_MODEL (e.g., "openai/gpt-4")
+            - [ ] OPENROUTER_CITATION_MODEL (e.g., "anthropic/claude-3-haiku")
+            - [ ] OPENROUTER_ART_MODEL (e.g., "openai/gpt-4")
+            - [ ] OPENROUTER_QA_MODEL (e.g., "anthropic/claude-3-sonnet")
+            - [ ] OPENROUTER_PDF_MODEL (e.g., "openai/gpt-4")
+        - [ ] Add fallback model configuration
+    - [ ] **Update Config System**: Extend configuration to support OpenRouter
+        - [ ] Add OpenRouter configuration section to src/config/index.ts
+        - [ ] Add model mapping for each agent type
+        - [ ] Add validation for OpenRouter configuration
+        - [ ] Update environment variable loading
+    - [ ] **Create OpenRouter Client**: Build unified client for OpenRouter API
+        - [ ] Create src/lib/openrouter-client.ts
+        - [ ] Implement chat completion interface
+        - [ ] Implement image generation interface (if supported)
+        - [ ] Add error handling and retry logic
+        - [ ] Add request/response logging
+        - [ ] Add rate limiting support
+    - [ ] **Update Base Agent**: Modify BaseAgent to use OpenRouter client
+        - [ ] Update BaseAgent.ts to accept model parameter
+        - [ ] Add model selection logic
+        - [ ] Update agent initialization
+    - [ ] **Update Individual Agents**: Modify each agent to use OpenRouter with specific models
+        - [ ] **LoreAgent**: Update to use OPENROUTER_LORE_MODEL
+        - [ ] **StatBlockAgent**: Update to use OPENROUTER_STATBLOCK_MODEL
+        - [ ] **CitationAgent**: Update to use OPENROUTER_CITATION_MODEL
+        - [ ] **ArtPromptAgent**: Update to use OPENROUTER_ART_MODEL
+        - [ ] **QAAgent**: Update to use OPENROUTER_QA_MODEL
+        - [ ] **PDFAgent**: Update to use OPENROUTER_PDF_MODEL
+    - [ ] **Update Test Scripts**: Modify test scripts to use OpenRouter
+        - [ ] Update tests/integration/openai/openai.test.ts to test OpenRouter
+        - [ ] Update individual agent test scripts
+        - [ ] Update generate-with-refinement.ts
+    - [ ] **Update Environment Files**: Add OpenRouter configuration
+        - [ ] Update env.example with OpenRouter variables
+        - [ ] Update debug-env.ts to show OpenRouter configuration
+    - [ ] **Add Documentation**: Document OpenRouter integration
+        - [ ] Add OpenRouter setup instructions to README.md
+        - [ ] Document model selection strategy
+        - [ ] Add troubleshooting guide
+    - [ ] **Testing and Validation**: Ensure everything works with OpenRouter
+        - [ ] Test each agent individually with OpenRouter
+        - [ ] Test full refinement pipeline with OpenRouter
+        - [ ] Test with different model combinations
+        - [ ] Validate cost optimization
+        - [ ] Test fallback mechanisms
+- [ ] **Design Provider Interface**: Create abstraction layer for multiple AI providers
+- [ ] **Implement Provider Adapters**: Build adapters for each supported provider
+- [ ] **Update Configuration**: Extend config system to support provider selection
+- [ ] **Environment Variables**: Add AI_PROVIDER, AI_API_KEY, AI_MODEL variables
+- [ ] **Testing**: Test with different providers and models
 
 ### Database & Persistence Improvements
 - [ ] **Fix PDF Agent JSON Parsing**: Resolve the "Failed to parse PDF layout JSON" issue to avoid fallback layouts
