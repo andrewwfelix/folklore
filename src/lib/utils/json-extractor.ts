@@ -30,19 +30,29 @@ export function extractJsonWithFallback(response: string): any | null {
   if (jsonResult) {
     return jsonResult;
   }
-  
-  // Fallback to regex matching for backward compatibility
-  const jsonMatch = response.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    console.error("No JSON object found in response");
-    return null;
+
+  // Fallback to regex matching for object
+  const jsonObjectMatch = response.match(/\{[\s\S]*\}/);
+  if (jsonObjectMatch) {
+    try {
+      return JSON.parse(jsonObjectMatch[0]);
+    } catch (e) {
+      console.error("Failed to parse JSON object with fallback:", e);
+      console.error("Raw response:", response);
+    }
   }
-  
-  try {
-    return JSON.parse(jsonMatch[0]);
-  } catch (e) {
-    console.error("Failed to parse JSON with fallback:", e);
-    console.error("Raw response:", response);
-    return null;
+
+  // Fallback to regex matching for array
+  const jsonArrayMatch = response.match(/\[[\s\S]*\]/);
+  if (jsonArrayMatch) {
+    try {
+      return JSON.parse(jsonArrayMatch[0]);
+    } catch (e) {
+      console.error("Failed to parse JSON array with fallback:", e);
+      console.error("Raw response:", response);
+    }
   }
+
+  console.error("No JSON object or array found in response");
+  return null;
 } 

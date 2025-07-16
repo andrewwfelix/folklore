@@ -32,6 +32,13 @@
     - [ ] Un-hardcode model in QAAgent (src/agents/QAAgent.ts)
     - [ ] Un-hardcode model in PDFAgent (src/agents/PDFAgent.ts)
     - [ ] Un-hardcode model in test scripts (e.g., tests/integration/openai/openai.test.ts)
+- [ ] **Fix Agent Unit Test Mocking**: Resolve OpenAI constructor mocking issues in Jest unit tests and establish consistent testing patterns across all agents.
+    - [ ] **Fix LoreAgent Jest Mock**: Resolve "openai_1.default is not a constructor" error in tests/unit/agents/LoreAgent.test.ts
+    - [ ] **Investigate Mock Strategy**: Determine if Jest mocking or script-based testing is preferred for agent tests
+    - [ ] **Create Consistent Test Pattern**: Either create Jest unit tests for all agents with proper mocking, or remove Jest tests and rely on script-based tests
+    - [ ] **Update Test Documentation**: Document the chosen testing approach and provide examples for future agent tests
+    - [ ] **Consider Mock Alternatives**: Evaluate using dependency injection or service layer abstraction to make agents more testable
+    - [ ] **Test Coverage Analysis**: Ensure all agents have adequate test coverage (currently only LoreAgent has Jest unit test, others use script tests)
 - [x] **QA Feedback Loop**: Ensure that if the QA agent has feedback, the system provides an opportunity to send that feedback back into the relevant agent(s) for revision or rerun.
 - [x] **QA Feedback Incorporation**: Implement mechanism to automatically rerun specific agents (e.g., Lore Agent for name issues, StatBlock Agent for balance issues) based on QA feedback.
 

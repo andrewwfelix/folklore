@@ -15,6 +15,22 @@ export interface Config {
     model: string;
   };
   
+  // Agent Model Configuration
+  agents: {
+    lore: string;
+    statblock: string;
+    citation: string;
+    artPrompt: string;
+    pdf: string;
+  };
+  
+  // Iteration Model Configuration
+  iterations: {
+    iteration1: string;
+    iteration2: string;
+    iteration3: string;
+  };
+  
   // DALL-E Image Generation
   dalle: {
     apiKey: string;
@@ -45,12 +61,9 @@ export interface Config {
   
   // Refinement Settings
   refinement: {
-    useScoringSystem: boolean;        // Use scoring system vs issue resolution
-    scoringSystemTarget: number;      // Target score (1-5 scale)
+    iterations: number;               // Always 3 iterations
+    forceImprovement: boolean;        // Force improvement on first iteration
     mockMode: boolean;                // Use mock responses for refinement
-    stopCondition: 'score' | 'issues'; // Stop based on score or remaining issues
-    targetScore: number;              // Target score for score-based stopping
-    maxIterations: number;            // Maximum refinement iterations
   };
   
   // Development
@@ -71,6 +84,20 @@ export const config: Config = {
   openai: {
     apiKey: process.env['OPENAI_API_KEY'] || '',
     model: process.env['OPENAI_MODEL'] || 'gpt-4',
+  },
+  
+  agents: {
+    lore: process.env['LORE_AGENT_MODEL'] || 'gpt-4',
+    statblock: process.env['STATBLOCK_AGENT_MODEL'] || 'gpt-4',
+    citation: process.env['CITATION_AGENT_MODEL'] || 'gpt-4',
+    artPrompt: process.env['ART_PROMPT_AGENT_MODEL'] || 'gpt-4',
+    pdf: process.env['PDF_AGENT_MODEL'] || 'gpt-4',
+  },
+  
+  iterations: {
+    iteration1: process.env['ITERATION_1_MODEL'] || 'gpt-4',
+    iteration2: process.env['ITERATION_2_MODEL'] || 'gpt-4-turbo',
+    iteration3: process.env['ITERATION_3_MODEL'] || 'gpt-3.5-turbo',
   },
   
   dalle: {
@@ -99,12 +126,9 @@ export const config: Config = {
   },
   
   refinement: {
-    useScoringSystem: process.env['USE_SCORING_SYSTEM'] !== 'false',
-    scoringSystemTarget: parseFloat(process.env['SCORING_SYSTEM_TARGET'] || '4.8'),
+    iterations: parseInt(process.env['REFINEMENT_ITERATIONS'] || '3'), // Always 3
+    forceImprovement: process.env['FORCE_IMPROVEMENT'] !== 'false',
     mockMode: process.env['MOCK_MODE'] === 'true',
-    stopCondition: (process.env['STOP_CONDITION'] as 'score' | 'issues') || 'issues',
-    targetScore: parseFloat(process.env['TARGET_SCORE'] || '4.5'),
-    maxIterations: parseInt(process.env['MAX_ITERATIONS'] || '3'),
   },
   
   development: {
@@ -129,6 +153,10 @@ export function validateConfig(): void {
   
   if (config.generation.batchSize < 1) {
     errors.push('GENERATION_BATCH_SIZE must be at least 1');
+  }
+  
+  if (config.refinement.iterations !== 3) {
+    errors.push('REFINEMENT_ITERATIONS must be exactly 3');
   }
   
   if (errors.length > 0) {
@@ -162,4 +190,14 @@ export function estimateTotalCost(monsterCount: number): number {
   const llmCost = monsterCount * 0.01;
   
   return totalImageCost + llmCost;
+}
+
+// Helper function to get model for specific iteration
+export function getIterationModel(iteration: number): string {
+  switch (iteration) {
+    case 1: return config.iterations.iteration1;
+    case 2: return config.iterations.iteration2;
+    case 3: return config.iterations.iteration3;
+    default: return config.openai.model;
+  }
 } 

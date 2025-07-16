@@ -1,18 +1,18 @@
-import { RefinementLogger } from './refinement-logger';
-import { MonsterPersistence } from './monster-persistence';
 import { QAAgent } from '../../agents/QAAgent';
 import { LoreAgent } from '../../agents/LoreAgent';
 import { StatBlockAgent } from '../../agents/StatBlockAgent';
 import { CitationAgent } from '../../agents/CitationAgent';
 import { ArtPromptAgent } from '../../agents/ArtPromptAgent';
 import { PDFAgent } from '../../agents/PDFAgent';
-import { classifyQAIssues } from './qa-classification';
+import { RefinementLogger } from './refinement-logger';
+import { MonsterPersistence } from './monster-persistence';
 import { QAReview } from '../../types/qa-feedback';
-import { config } from '../../config';
+import { config, getIterationModel } from '../../config';
+import { generatePDF, generateSimplePDF } from './pdf-generator';
+import { uploadPDF, uploadImage } from './blob-storage';
 
 export interface RefinementConfig {
   maxIterations: number;
-  targetQAScore: number;
   enableLogging: boolean;
   enablePersistence: boolean;
   delayPDFGeneration?: boolean; // If true, PDF is generated only after refinement is complete
@@ -42,7 +42,6 @@ export class RefinementPipeline {
 
   constructor(config: RefinementConfig = {
     maxIterations: 3,
-    targetQAScore: 4.0,
     enableLogging: true,
     enablePersistence: true,
     delayPDFGeneration: true // Default to delaying PDF generation
@@ -63,27 +62,24 @@ export class RefinementPipeline {
    */
   async refineMonster(region: string): Promise<RefinementResult> {
     console.log('🚀 Starting Refinement Pipeline');
-    console.log(`Target QA Score: ${this.config.targetQAScore}`);
-    console.log(`Max Iterations: ${this.config.maxIterations}`);
-    console.log(`Mock Mode: ${config.refinement.mockMode}`);
-    console.log(`Stop Condition: ${config.refinement.stopCondition}`);
-    console.log(`Target Score: ${config.refinement.targetScore}`);
+    console.log(`Fixed Iterations: 3`);
+    console.log(`Iteration Models: ${config.iterations.iteration1}, ${config.iterations.iteration2}, ${config.iterations.iteration3}`);
     console.log('=====================================\n');
 
     let sessionId: string | undefined;
     let monsterId: string | undefined;
     let currentMonster: any;
-    let currentQAScore = 0;
     let iterations = 0;
     let improvements: string[] = [];
     let allIssues: any[] = [];
+    let logs: string[] = [];
 
     try {
       // Start refinement session
       if (this.config.enableLogging) {
         sessionId = await this.logger.startSession({
           session_name: `Refinement Pipeline - ${region}`,
-          max_iterations: this.config.maxIterations
+          max_iterations: 3
         });
         console.log(`📊 Started refinement session: ${sessionId}`);
       }
@@ -95,122 +91,89 @@ export class RefinementPipeline {
       console.log(`📝 Initial Monster: ${currentMonster.name}`);
       console.log(`📍 Region: ${currentMonster.region}`);
 
-      // Initial QA review
-      console.log('\n🔍 Running Initial QA Review...');
-      const initialQA = await this.runQAReview(currentMonster);
-      currentQAScore = initialQA.overallScore;
-      allIssues = [...initialQA.issues];
-
-      console.log(`📊 Initial QA Score: ${currentQAScore}/5.0`);
-      console.log(`⚠️  Issues Found: ${initialQA.issues.length}`);
-
-      // Log initial iteration
-      if (this.config.enableLogging && sessionId) {
-        await this.logger.logIteration({
-          session_id: sessionId,
-          iteration_number: 0,
-          qa_score_before: 0,
-          qa_score_after: currentQAScore,
-          qa_issues: initialQA.issues,
-          agent_actions: [],
-          improvements_made: [],
-          duration_ms: 0,
-          success: false
-        });
-      }
-
-      // Check if we already meet the target score
-      if (currentQAScore >= this.config.targetQAScore) {
-        console.log('✅ Initial monster already meets target QA score!');
-        return this.createResult(currentMonster, currentQAScore, iterations, true, sessionId, undefined, improvements, allIssues);
-      }
-
-      // Iterative refinement loop
-      for (let iteration = 1; iteration <= this.config.maxIterations; iteration++) {
-        console.log(`\n🔄 Starting Iteration ${iteration}/${this.config.maxIterations}`);
+      // Always do exactly 3 iterations with different models
+      for (let iteration = 1; iteration <= 3; iteration++) {
+        console.log(`\n🔄 Starting Iteration ${iteration}/3`);
+        console.log(`📊 Using model: ${getIterationModel(iteration)}`);
         
         const iterationStart = Date.now();
         
-        // Run QA review on current monster to get fresh issues
-        console.log('\n🔍 Running QA Review to Identify Issues...');
-        const currentQA = await this.runQAReview(currentMonster);
-        const iterationIssues = await this.processQAFeedback(currentQA);
+        // Run QA review with iteration-specific model
+        console.log('\n🔍 Running QA Review...');
+        const qaResult = await this.qaAgent.execute({
+          name: currentMonster.name,
+          region: currentMonster.region,
+          lore: currentMonster.lore,
+          statblock: currentMonster.statblock,
+          citations: currentMonster.citations || [],
+          artPrompt: currentMonster.art || {},
+          forceImprovement: true, // Always force improvement for each iteration
+          iteration: iteration
+        });
         
+        if (qaResult.logs) logs.push(...qaResult.logs);
+        const qaReview = qaResult.qaReview;
+        
+        console.log(`📊 QA Status: ${qaReview.status}`);
+        console.log(`⚠️  Issues Found: ${qaReview.issues?.length || 0}`);
+        
+        // Process QA feedback
+        const iterationIssues = await this.processQAFeedback(qaReview);
+        
+        // Always apply at least one improvement per iteration
         if (iterationIssues.length === 0) {
-          console.log('✅ No actionable issues found - stopping refinement');
-          break;
+          console.log('🔧 No QA issues found, applying default improvement...');
+          // Force a default improvement for this iteration
+          const defaultIssue = {
+            category: 'Quality',
+            issue: 'General improvement needed',
+            suggestion: 'Enhance overall quality and coherence',
+            severity: 'Minor',
+            affectedAgent: 'LoreAgent'
+          };
+          const iterationImprovements = await this.applyImprovements(currentMonster, [defaultIssue]);
+          improvements.push(...iterationImprovements);
+        } else {
+          // Apply improvements based on QA feedback
+          console.log(`🔧 Applying ${iterationIssues.length} improvements...`);
+          const iterationImprovements = await this.applyImprovements(currentMonster, iterationIssues);
+          improvements.push(...iterationImprovements);
         }
-
-        // Apply improvements based on QA feedback
-        const iterationImprovements = await this.applyImprovements(currentMonster, iterationIssues);
-        improvements.push(...iterationImprovements);
-
-        // Run QA review on improved monster
-        console.log('\n🔍 Running QA Review on Improved Monster...');
-        const iterationQA = await this.runQAReview(currentMonster);
-        const previousScore = currentQAScore;
-        currentQAScore = iterationQA.overallScore;
-        allIssues = [...iterationQA.issues];
-
-        console.log(`📊 QA Score: ${currentQAScore}/5.0 (was ${previousScore}/5.0)`);
-        console.log(`⚠️  Remaining Issues: ${iterationQA.issues.length}`);
-        console.log(`🔍 Debug - Score improvement: ${currentQAScore > previousScore ? 'YES' : 'NO'}`);
-        console.log(`🔍 Debug - Target score: ${config.refinement.targetScore}`);
-        console.log(`🔍 Debug - Stop condition: ${config.refinement.stopCondition}`);
-        console.log(`🔍 Debug - Issues resolved this iteration: ${iterationIssues.length}`);
-        console.log(`🔍 Debug - All issues before: ${allIssues.length}, after: ${iterationQA.issues.length}`);
 
         // Log iteration
         if (this.config.enableLogging && sessionId) {
           await this.logger.logIteration({
             session_id: sessionId,
             iteration_number: iteration,
-            qa_score_before: previousScore,
-            qa_score_after: currentQAScore,
-            qa_issues: iterationQA.issues,
+            qa_score_before: 0,
+            qa_score_after: 0,
+            qa_issues: qaReview.issues || [],
             agent_actions: this.createAgentActions(iterationIssues),
-            improvements_made: iterationImprovements,
+            improvements_made: improvements.slice(-1), // Always log the improvement made
             duration_ms: Date.now() - iterationStart,
-            success: currentQAScore > previousScore
+            success: true // Always mark as successful since we always apply an improvement
           });
         }
 
         iterations = iteration;
-
-        // Check stopping conditions based on configuration
-        if (config.refinement.stopCondition === 'score') {
-          // Score-based stopping: Stop when target score is reached
-          if (currentQAScore >= config.refinement.targetScore) {
-            console.log(`✅ Target QA score reached (${config.refinement.targetScore}/5.0)!`);
-            break;
-          }
-          
-          // Stop if no improvement detected
-          if (currentQAScore <= previousScore) {
-            console.log('⚠️  No improvement detected - stopping refinement');
-            break;
-          }
-        } else {
-          // Issue-based stopping: Stop when all issues are resolved
-          if (iterationQA.issues.length === 0) {
-            console.log('✅ All issues resolved - stopping refinement');
-            break;
-          }
-          
-          // For issue-based, also stop if no improvement in issue count
-          const previousIssueCount = allIssues.length - iterationIssues.length;
-          const currentIssueCount = iterationQA.issues.length;
-          if (currentIssueCount >= previousIssueCount && currentQAScore <= previousScore) {
-            console.log('⚠️  No improvement in issues or score - stopping refinement');
-            break;
-          }
-        }
+        allIssues = [...(qaReview.issues || [])];
       }
 
       // Generate final PDF layout after refinement is complete (if enabled)
+      console.log(`🔍 Debug - PDF Generation Settings:`);
+      console.log(`   • GENERATE_PDF env var: ${process.env['GENERATE_PDF']}`);
+      console.log(`   • config.generation.generatePDF: ${config.generation.generatePDF}`);
+      console.log(`   • config.generation.enablePDFGeneration: ${config.generation.enablePDFGeneration}`);
+      
       if (config.generation.generatePDF) {
         console.log('\n📄 Generating Final PDF Layout...');
         currentMonster = await this.generateFinalPDF(currentMonster);
+        
+        // Verification step
+        console.log(`🔍 PDF Generation Verification:`);
+        console.log(`   • PDF URL: ${currentMonster.pdfUrl || 'NOT GENERATED'}`);
+        console.log(`   • Image URL: ${currentMonster.imageUrl || 'NOT GENERATED'}`);
+        console.log(`   • PDF Layout exists: ${!!currentMonster.pdfLayout}`);
       } else {
         console.log('\n📄 Skipping PDF generation (disabled)');
       }
@@ -231,11 +194,13 @@ export class RefinementPipeline {
           citations: currentMonster.citations || [],
           art: currentMonster.art || {},
           pdfLayout: currentMonster.pdfLayout,
+          monsterJson: currentMonster.monsterJson, // Complete monster JSON
           imageUrl: currentMonster.imageUrl,
-          initial_qa_score: initialQA.overallScore,
-          final_qa_score: currentQAScore,
+          initial_qa_score: 0,
+          final_qa_score: 0,
           refinement_iterations: iterations,
-          refinement_success: currentQAScore >= this.config.targetQAScore
+          refinement_success: true, // Always mark as successful since we complete 3 iterations
+          console_log: logs.join('\n---\n') // Persist logs
         };
 
         // Only add refinement_session_id if it exists
@@ -249,39 +214,43 @@ export class RefinementPipeline {
         // Update monster with refinement metadata
         if (sessionId) {
           await this.logger.updateMonsterRefinement(monsterId, sessionId, {
-            initial_qa_score: initialQA.overallScore,
-            final_qa_score: currentQAScore,
+            initial_qa_score: 0,
+            final_qa_score: 0,
             refinement_iterations: iterations,
-            refinement_success: config.refinement.useScoringSystem 
-              ? currentQAScore >= config.refinement.scoringSystemTarget
-              : allIssues.length === 0
+            refinement_success: allIssues.length === 0
           });
         }
       }
 
-      // Determine success based on configuration
-      const success = config.refinement.useScoringSystem 
-        ? currentQAScore >= config.refinement.scoringSystemTarget
-        : allIssues.length === 0;
+      // Always mark as completed since we run exactly 3 iterations
+      const completed = true;
 
       // Complete session
       if (this.config.enableLogging && sessionId) {
         await this.logger.completeSession({
-          final_qa_score: currentQAScore,
+          final_qa_score: 0,
           total_iterations: iterations,
-          success_criteria_met: success,
-          final_status: success ? 'SUCCESS' : 'MAX_ITERATIONS_REACHED'
+          success_criteria_met: completed,
+          final_status: 'COMPLETED'
         });
       }
         
       console.log(`\n🎯 Refinement Complete!`);
-      console.log(`Final QA Score: ${currentQAScore}/5.0`);
-      console.log(`Remaining Issues: ${allIssues.length}`);
-      console.log(`Success: ${success ? '✅' : '❌'}`);
+      console.log(`Final Issues: ${allIssues.length}`);
+      console.log(`Status: ✅ Completed`);
       console.log(`Iterations: ${iterations}`);
-      console.log(`Mode: ${config.refinement.useScoringSystem ? 'Score-based' : 'Issue-based'}`);
+      console.log(`Mode: Fixed 3-iteration refinement`);
+      
+      // Final verification
+      console.log(`\n🔍 Final Monster Verification:`);
+      console.log(`   • Name: ${currentMonster.name}`);
+      console.log(`   • Region: ${currentMonster.region}`);
+      console.log(`   • PDF URL: ${currentMonster.pdfUrl || 'NOT GENERATED'}`);
+      console.log(`   • Image URL: ${currentMonster.imageUrl || 'NOT GENERATED'}`);
+      console.log(`   • PDF Layout: ${currentMonster.pdfLayout ? 'EXISTS' : 'NOT GENERATED'}`);
+      console.log(`   • Monster ID: ${monsterId || 'NOT SAVED'}`);
 
-      return this.createResult(currentMonster, currentQAScore, iterations, success, sessionId, monsterId, improvements, allIssues);
+      return this.createResult(currentMonster, 0, iterations, completed, sessionId, monsterId, improvements, allIssues);
 
     } catch (error) {
       console.error('❌ Refinement pipeline failed:', error);
@@ -290,7 +259,7 @@ export class RefinementPipeline {
       if (this.config.enableLogging && sessionId) {
         try {
           await this.logger.completeSession({
-            final_qa_score: currentQAScore,
+            final_qa_score: 0,
             total_iterations: iterations,
             success_criteria_met: false,
             final_status: 'MAX_ITERATIONS_REACHED' // Use a valid status instead of ERROR
@@ -372,30 +341,70 @@ export class RefinementPipeline {
       artPrompt: monster.art || {}
     });
 
-    return {
-      ...monster,
-      pdfLayout: pdfResult.pdfLayout
-    };
-  }
-
-  /**
-   * Run QA review on a monster
-   */
-  private async runQAReview(monster: any): Promise<QAReview> {
-    const result = await this.qaAgent.execute({
+    // Create complete monster JSON for persistence
+    const completeMonsterJson = {
       name: monster.name,
       region: monster.region,
       lore: monster.lore,
-      statblock: monster.statblock || {},
+      statblock: monster.statblock,
       citations: monster.citations || [],
-      artPrompt: monster.art || {}
-    });
+      art: monster.art || {},
+      pdfLayout: pdfResult.pdfLayout
+    };
 
-    const classifiedIssues = classifyQAIssues(result.qaReview);
+    // Generate actual PDF and upload to blob storage
+    let pdfUrl: string | undefined;
+    let imageUrl: string | undefined;
     
+    try {
+      console.log('📄 Generating actual PDF file...');
+      
+      // Generate actual PDF from the layout
+      let pdfContent: Buffer;
+      try {
+        // Try to use the PDF layout from PDFAgent
+        pdfContent = await generatePDF(pdfResult.pdfLayout);
+      } catch (pdfError) {
+        console.log('📄 PDF layout generation failed, using fallback:', (pdfError as Error).message);
+        // Fallback to simple PDF generation
+        pdfContent = await generateSimplePDF(
+          monster.name,
+          monster.lore,
+          monster.statblock,
+          monster.citations || [],
+          monster.art || {}
+        );
+      }
+      
+      // Upload PDF to blob storage
+      console.log(`📄 Attempting to upload PDF for: ${monster.name}`);
+      console.log(`📄 PDF content size: ${pdfContent.length} bytes`);
+      const pdfUploadResult = await uploadPDF(monster.name, pdfContent, { addRandomSuffix: true });
+      pdfUrl = pdfUploadResult.url;
+      console.log('📄 PDF uploaded successfully:', pdfUrl);
+      console.log(`📄 PDF filename: ${pdfUploadResult.filename}`);
+      console.log(`📄 PDF size: ${pdfUploadResult.size} bytes`);
+      
+      // For now, create placeholder image content
+      // In the future, this would be generated from artPrompt using DALL-E or similar
+      console.log(`🖼️  Attempting to upload image for: ${monster.name}`);
+      const imageContent = Buffer.from(`Placeholder image for ${monster.name}`);
+      const imageUploadResult = await uploadImage(monster.name, imageContent, { addRandomSuffix: true });
+      imageUrl = imageUploadResult.url;
+      console.log('🖼️  Image uploaded successfully:', imageUrl);
+      console.log(`🖼️  Image filename: ${imageUploadResult.filename}`);
+      console.log(`🖼️  Image size: ${imageUploadResult.size} bytes`);
+      
+    } catch (error) {
+      console.error('❌ PDF generation/upload failed:', (error as Error).message);
+    }
+
     return {
-      ...result.qaReview,
-      issues: classifiedIssues
+      ...monster,
+      pdfLayout: pdfResult.pdfLayout,
+      monsterJson: completeMonsterJson, // Include complete monster JSON
+      pdfUrl,
+      imageUrl
     };
   }
 

@@ -20,9 +20,11 @@ CREATE TABLE folklore_monsters (
     status folklore_monster_status DEFAULT 'draft',
     image_url TEXT,
     pdf_url TEXT,
+    monster_json JSONB, -- Complete monster data as JSON before PDF generation
     embedding vector(1536), -- For semantic search
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    console_log TEXT -- New field for persisting logs
 );
 
 -- Folklore Citations table (references to source materials)

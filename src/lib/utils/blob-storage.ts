@@ -32,9 +32,22 @@ export async function uploadToBlob(
   const buffer = typeof content === 'string' ? Buffer.from(content, 'utf-8') : content;
 
   // Add random suffix if requested
-  const finalFilename = options.addRandomSuffix 
-    ? `${filename}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
-    : filename;
+  let finalFilename: string;
+  if (options.addRandomSuffix) {
+    const extMatch = filename.match(/(\.[^./\\]+)$/);
+    if (extMatch) {
+      // Insert suffix before extension
+      finalFilename = filename.replace(
+        /(\.[^./\\]+)$/,
+        `-${Date.now()}-${Math.random().toString(36).substring(2, 8)}$1`
+      );
+    } else {
+      // No extension, just append
+      finalFilename = `${filename}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    }
+  } else {
+    finalFilename = filename;
+  }
 
   const blob = await put(finalFilename, buffer, {
     access: 'public',

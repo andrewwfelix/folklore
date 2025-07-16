@@ -23,7 +23,9 @@ describe('Prompt Templates', () => {
       expect(prompt).toContain('Japan');
       expect(prompt).toContain('yokai, supernatural');
       expect(prompt).toContain('A mysterious creature from Japanese folklore');
-      expect(prompt).toContain('cultural mythographer');
+      expect(prompt).toContain('Setting');
+      expect(prompt).toContain('Notable Characters');
+      expect(prompt).toContain('Key Historical Event');
     });
 
     it('should handle missing optional variables', () => {
@@ -48,8 +50,8 @@ describe('Prompt Templates', () => {
       const prompt = buildStatBlockPrompt(context);
 
       expect(prompt).toContain('A nine-tailed fox yokai that dwells in sacred groves');
-      expect(prompt).toContain('D&D 5e-compatible stat blocks');
-      expect(prompt).toContain('JSON format');
+      expect(prompt).toContain('Dungeons & Dragons monster designer');
+      expect(prompt).toContain('stat block');
     });
   });
 
@@ -83,7 +85,8 @@ describe('Prompt Templates', () => {
       expect(prompt).toContain('Kitsune-no-Mori');
       expect(prompt).toContain('Japan');
       expect(prompt).toContain('A nine-tailed fox yokai that dwells in sacred groves');
-      expect(prompt).toContain('AI image generator');
+      expect(prompt).toContain('visionary artist');
+      expect(prompt).toContain('art prompt');
     });
   });
 
@@ -103,8 +106,15 @@ describe('Prompt Templates', () => {
       expect(prompt).toContain('Kitsune-no-Mori');
       expect(prompt).toContain('Japan');
       expect(prompt).toContain('A nine-tailed fox yokai that dwells in sacred groves');
-      expect(prompt).toContain('{"armorClass":15,"hitPoints":120,"challengeRating":8}');
-      expect(prompt).toContain('senior editor evaluating');
+      expect(prompt).toContain('stat block coherence');
+      expect(prompt).toContain('correctness');
+      expect(prompt).toContain('clarity');
+      expect(prompt).toContain('relevance');
+      expect(prompt).toContain('JSON format');
+      expect(prompt).toContain('Monster Data:');
+      expect(prompt).toContain('armorClass');
+      expect(prompt).toContain('citations');
+      expect(prompt).toContain('art prompt');
     });
   });
 

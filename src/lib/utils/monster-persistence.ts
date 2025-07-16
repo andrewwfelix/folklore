@@ -1,4 +1,5 @@
-import { supabase } from '../supabase/client';
+import { folkloreSupabase } from '../supabase/folklore-client';
+import { supabase } from '@/lib/supabase/client';
 
 export interface MonsterData {
   id?: string;
@@ -11,12 +12,14 @@ export interface MonsterData {
   art?: any;
   pdfUrl?: string | undefined;
   imageUrl?: string | undefined;
+  monsterJson?: any; // Complete monster data as JSON
   status?: string;
   refinement_session_id?: string;
   initial_qa_score?: number;
   final_qa_score?: number;
   refinement_iterations?: number;
   refinement_success?: boolean;
+  console_log?: string; // New field for logs
 }
 
 export class MonsterPersistence {
@@ -25,7 +28,7 @@ export class MonsterPersistence {
    */
   async saveMonster(monster: MonsterData): Promise<string> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await folkloreSupabase
         .from('folklore_monsters')
         .insert({
           name: monster.name,
@@ -34,11 +37,13 @@ export class MonsterPersistence {
           statblock: monster.statBlock,
           image_url: monster.imageUrl || null,
           pdf_url: monster.pdfUrl || null,
+          monster_json: monster.monsterJson || null, // Save complete monster JSON
           refinement_session_id: monster.refinement_session_id,
           initial_qa_score: monster.initial_qa_score,
           final_qa_score: monster.final_qa_score,
           refinement_iterations: monster.refinement_iterations,
-          refinement_success: monster.refinement_success
+          refinement_success: monster.refinement_success,
+          console_log: monster.console_log || null // Save logs
         })
         .select('id')
         .single();
@@ -78,7 +83,7 @@ export class MonsterPersistence {
         relevance: citation.relevance || ''
       }));
 
-      const { error } = await supabase
+      const { error } = await folkloreSupabase
         .from('folklore_citations')
         .insert(citationData);
 
@@ -96,7 +101,7 @@ export class MonsterPersistence {
    */
   private async saveArtPrompt(monsterId: string, art: any): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await folkloreSupabase
         .from('folklore_art_prompts')
         .insert({
           monster_id: monsterId,
@@ -133,6 +138,7 @@ export class MonsterPersistence {
       if (updates.final_qa_score !== undefined) updateData.final_qa_score = updates.final_qa_score;
       if (updates.refinement_iterations !== undefined) updateData.refinement_iterations = updates.refinement_iterations;
       if (updates.refinement_success !== undefined) updateData.refinement_success = updates.refinement_success;
+      if (updates.console_log !== undefined) updateData.console_log = updates.console_log; // Update logs
 
       const { error } = await supabase
         .from('folklore_monsters')
@@ -185,12 +191,14 @@ export class MonsterPersistence {
         art: artData || {},
         pdfUrl: data.pdf_url || undefined,
         imageUrl: data.image_url || undefined,
+        monsterJson: data.monster_json || undefined, // Fetch complete monster JSON
         status: data.status,
         refinement_session_id: data.refinement_session_id,
         initial_qa_score: data.initial_qa_score,
         final_qa_score: data.final_qa_score,
         refinement_iterations: data.refinement_iterations,
-        refinement_success: data.refinement_success
+        refinement_success: data.refinement_success,
+        console_log: data.console_log // Fetch logs
       };
     } catch (error) {
       console.error('Failed to get monster:', error);
@@ -242,7 +250,8 @@ export class MonsterPersistence {
             initial_qa_score: monster.initial_qa_score,
             final_qa_score: monster.final_qa_score,
             refinement_iterations: monster.refinement_iterations,
-            refinement_success: monster.refinement_success
+            refinement_success: monster.refinement_success,
+            console_log: monster.console_log // Fetch logs
           };
         })
       );
@@ -299,7 +308,8 @@ export class MonsterPersistence {
             initial_qa_score: monster.initial_qa_score,
             final_qa_score: monster.final_qa_score,
             refinement_iterations: monster.refinement_iterations,
-            refinement_success: monster.refinement_success
+            refinement_success: monster.refinement_success,
+            console_log: monster.console_log // Fetch logs
           };
         })
       );

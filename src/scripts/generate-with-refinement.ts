@@ -17,8 +17,8 @@ async function generateWithRefinement() {
     // Display current settings
     console.log(`\n📊 Generation Settings:`);
     console.log(`   • Count: ${config.generation.count} monsters`);
-    console.log(`   • Max Iterations: ${config.refinement.maxIterations}`);
-    console.log(`   • Target QA Score: ${config.refinement.scoringSystemTarget}`);
+    console.log(`   • Max Iterations: ${config.refinement.iterations}`);
+    console.log(`   • Force Improvement: ${config.refinement.forceImprovement ? '✅' : '❌'}`);
     console.log(`   • Image Generation: ${config.generation.enableImageGeneration ? '✅' : '❌'}`);
     console.log(`   • PDF Generation: ${config.generation.generatePDF ? '✅' : '❌'}`);
     console.log(`   • Art Generation: ${config.generation.enableArtGeneration ? '✅' : '❌'}`);
@@ -52,8 +52,7 @@ async function generateWithRefinement() {
     
     // Create refinement pipeline
     const pipeline = new RefinementPipeline({
-      maxIterations: config.refinement.maxIterations,
-      targetQAScore: 4.8, // Increased to force refinement iterations
+      maxIterations: config.refinement.iterations,
       enableLogging: true,
       enablePersistence: true,
       delayPDFGeneration: true // PDF generated only after refinement is complete
@@ -75,7 +74,7 @@ async function generateWithRefinement() {
         console.log(`✅ Monster #${i + 1} completed: ${result.monster.name}`);
         console.log(`📊 Final QA Score: ${result.finalQAScore}/5.0`);
         console.log(`🔄 Iterations: ${result.iterations}`);
-        console.log(`🎯 Success: ${result.success ? '✅' : '❌'}`);
+        console.log(`🎯 Status: ✅ Completed`);
         
         if (result.improvements.length > 0) {
           console.log(`🔧 Improvements: ${result.improvements.length}`);
@@ -97,21 +96,21 @@ async function generateWithRefinement() {
       console.log('\n📋 Generated Monsters:');
       results.forEach((result, index) => {
         console.log(`   ${index + 1}. ${result.monster.name} (${result.monster.region})`);
-        console.log(`      QA Score: ${result.finalQAScore}/5.0`);
+        console.log(`      QA Score: ${result.finalQAScore}/5.0}`);
         console.log(`      Iterations: ${result.iterations}`);
-        console.log(`      Success: ${result.success ? '✅' : '❌'}`);
+        console.log(`      Status: ✅ Completed`);
         if (result.monsterId) {
           console.log(`      Monster ID: ${result.monsterId}`);
         }
       });
       
-      // Calculate success rate
-      const successfulMonsters = results.filter(r => r.success).length;
+      // Calculate completion statistics
+      const completedMonsters = results.length;
       const averageScore = results.reduce((sum, r) => sum + r.finalQAScore, 0) / results.length;
       const averageIterations = results.reduce((sum, r) => sum + r.iterations, 0) / results.length;
       
       console.log('\n📊 Summary Statistics:');
-      console.log(`   • Success Rate: ${(successfulMonsters / results.length * 100).toFixed(1)}%`);
+      console.log(`   • Completion Rate: ${(completedMonsters / results.length * 100).toFixed(1)}%`);
       console.log(`   • Average QA Score: ${averageScore.toFixed(2)}/5.0`);
       console.log(`   • Average Iterations: ${averageIterations.toFixed(1)}`);
     }

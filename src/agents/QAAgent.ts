@@ -2,18 +2,20 @@ import { BaseAgent } from './base/BaseAgent';
 import { AgentType } from '@/types';
 import { buildQAReviewPrompt } from '@/prompts';
 import OpenAI from 'openai';
-import { config } from '@/config';
+import { config, getIterationModel } from '@/config';
 import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
 export class QAAgent extends BaseAgent {
   private openai: OpenAI;
   private callCount: number = 0;
+  private iterationModel: string;
 
   constructor(id: string, config: any = {}) {
     super(id, 'QA Agent', AgentType.QUALITY_CONTROL, config);
     this.openai = new OpenAI({
       apiKey: process.env['OPENAI_API_KEY']!,
     });
+    this.iterationModel = config.openai?.model || 'gpt-4';
   }
 
   async execute(input: { 
@@ -22,18 +24,29 @@ export class QAAgent extends BaseAgent {
     lore: string; 
     statblock: any; 
     citations: any[]; 
-    artPrompt: any 
-  }): Promise<{ qaReview: any }> {
+    artPrompt: any; 
+    forceImprovement?: boolean;
+    logs?: string[];
+    iteration?: number;
+  }): Promise<{ qaReview: any, logs: string[] }> {
     try {
       await this.start();
       this.log('Performing QA review for monster');
-
-      const qaReview = await this.performQAReview(input);
+      const logs: string[] = [];
+      logs.push(`QAAgent.execute called with forceImprovement: ${input.forceImprovement}, iteration: ${input.iteration}`);
       
+      // Set model based on iteration
+      if (input.iteration) {
+        this.iterationModel = getIterationModel(input.iteration);
+        logs.push(`Using model for iteration ${input.iteration}: ${this.iterationModel}`);
+      }
+      
+      const { qaReview, promptLog, llmLog } = await this.performQAReview(input);
+      logs.push(promptLog);
+      logs.push(llmLog);
       await this.complete();
       this.log('QA review completed');
-
-      return { qaReview };
+      return { qaReview, logs };
     } catch (error) {
       await this.fail(error instanceof Error ? error.message : 'Unknown error');
       throw error;
@@ -46,26 +59,30 @@ export class QAAgent extends BaseAgent {
     lore: string; 
     statblock: any; 
     citations: any[]; 
-    artPrompt: any 
-  }): Promise<any> {
+    artPrompt: any; 
+    forceImprovement?: boolean;
+  }): Promise<{ qaReview: any, promptLog: string, llmLog: string }> {
     // Check if mock mode is enabled
     if (config.development.mockLLM) {
       this.callCount++;
       this.log(`Using mock mode - returning test QA review (call #${this.callCount})`);
-      return this.getMockQAReview(input);
+      return { qaReview: this.getMockQAReview(input), promptLog: '', llmLog: '' };
     }
 
-    const prompt = buildQAReviewPrompt({
+    console.log(`🔍 Debug - QAAgent received forceImprovement:`, input.forceImprovement, `(type: ${typeof input.forceImprovement})`);
+    
+    const { prompt, log: promptLog } = buildQAReviewPrompt({
       name: input.name,
       region: input.region,
       lore: input.lore,
       statblock: input.statblock,
       citations: input.citations,
-      artPrompt: input.artPrompt
+      artPrompt: input.artPrompt,
+      ...(typeof input.forceImprovement === 'boolean' ? { forceImprovement: input.forceImprovement } : {})
     });
     
     const response = await this.openai.chat.completions.create({
-      model: config.openai.model,
+      model: this.iterationModel,
       messages: [
         {
           role: 'system',
@@ -81,6 +98,12 @@ export class QAAgent extends BaseAgent {
     });
 
     const qaReviewText = response.choices[0]?.message?.content;
+    const llmLog = [
+      '=== LLM Response ===',
+      qaReviewText,
+      '=== End LLM Response ==='
+    ].join('\n');
+
     if (!qaReviewText) {
       throw new Error('Failed to generate QA review');
     }
@@ -91,7 +114,11 @@ export class QAAgent extends BaseAgent {
       if (!qaReview) {
         throw new Error('Failed to extract valid JSON from QA review response');
       }
-      return qaReview;
+      
+      // Set status based on issues (no scoring)
+      qaReview.status = qaReview.issues && qaReview.issues.length > 0 ? 'needs_revision' : 'pass';
+      
+      return { qaReview, promptLog, llmLog };
     } catch (parseError) {
       this.log('Failed to parse QA review JSON, retrying...');
       throw new Error(`Invalid JSON in QA review response: ${parseError}`);
@@ -128,8 +155,7 @@ export class QAAgent extends BaseAgent {
     const remainingIssues = allIssues.slice(0, Math.max(0, 3 - this.callCount));
     
     return {
-      overallScore: 3.0 + (this.callCount * 0.5), // Simple score progression
-      status: remainingIssues.length === 0 ? 'acceptable' : 'needs_revision',
+      status: remainingIssues.length === 0 ? 'pass' : 'needs_revision',
       issues: remainingIssues,
       summary: `Mock QA review #${this.callCount} - Issues remaining: ${remainingIssues.length}`,
       recommendations: [

@@ -14,12 +14,15 @@ export interface LoreAgentInput extends MonsterGenerationInput {
 
 export class LoreAgent extends BaseAgent {
   private openai: OpenAI;
+  private model: string;
+  private callCount: number = 0;
 
   constructor(id: string, config: any = {}) {
     super(id, 'Lore Agent', AgentType.DATA_PROCESSOR, config);
     this.openai = new OpenAI({
       apiKey: process.env['OPENAI_API_KEY']!,
     });
+    this.model = config.agents?.lore || 'gpt-4';
   }
 
   async execute(input: LoreAgentInput): Promise<Partial<Monster>> {
@@ -55,7 +58,8 @@ export class LoreAgent extends BaseAgent {
   private async generateLore(input: LoreAgentInput): Promise<string> {
     // Check if mock mode is enabled
     if (config.development.mockLLM) {
-      this.log('Using mock mode - returning test lore');
+      this.callCount++;
+      this.log(`Using mock mode - returning test lore (call #${this.callCount})`);
       return this.getMockLore(input);
     }
 
@@ -75,19 +79,19 @@ export class LoreAgent extends BaseAgent {
     }
     
     const response = await this.openai.chat.completions.create({
-      model: config.openai.model,
+      model: this.model,
       messages: [
         {
           role: 'system',
-          content: 'You are a cultural mythographer creating folklore-based content for a fantasy RPG. Create original monsters inspired by real-world myths and legends. When given QA feedback, address the specific issues mentioned.'
+          content: 'You are a master storyteller and folklore expert. Create rich, engaging lore that captures the essence of mythical creatures from different cultures. Return only valid JSON without any markdown formatting or additional text.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      max_tokens: 500,
-      temperature: 0.8
+      max_tokens: 2000,
+      temperature: 0.7
     });
 
     const lore = response.choices[0]?.message?.content;
@@ -161,16 +165,16 @@ export class LoreAgent extends BaseAgent {
     loreRelevantIssues.forEach(issue => {
       switch (issue.category) {
         case 'Name Distinctiveness':
-          instructions.push(`- Generate a more distinctive name. Current name is too generic. ${issue.suggestion}`);
+          instructions.push(`- Refine the creature's name to be more distinctive while maintaining its core identity. Consider variations like "Greater [Creature]" or "Shadow [Creature]" rather than changing to a completely different creature. ${issue.suggestion}`);
           break;
         case 'Cultural Authenticity':
-          instructions.push(`- Enhance cultural authenticity for ${issue.issue}. ${issue.suggestion}`);
+          instructions.push(`- Enhance cultural authenticity while maintaining the same creature type. Improve the lore and cultural details without changing to a different creature. ${issue.suggestion}`);
           break;
         case 'Consistency':
-          instructions.push(`- Fix consistency issues: ${issue.issue}. ${issue.suggestion}`);
+          instructions.push(`- Fix consistency issues while maintaining the same creature. Ensure the lore, abilities, and cultural details are coherent for this specific creature type. ${issue.suggestion}`);
           break;
         case 'Quality':
-          instructions.push(`- Improve overall quality: ${issue.issue}. ${issue.suggestion}`);
+          instructions.push(`- Improve overall quality while maintaining the same creature type. Enhance the lore, description, and cultural details without changing the fundamental creature identity. ${issue.suggestion}`);
           break;
         default:
           instructions.push(`- Address: ${issue.issue}. ${issue.suggestion}`);
@@ -196,16 +200,16 @@ export class LoreAgent extends BaseAgent {
             qaIssue.category === 'Cultural Authenticity') {
           switch (qaIssue.category) {
             case 'Name Distinctiveness':
-              instructions.push(`- Generate a more distinctive name. Current name is too generic. ${qaIssue.suggestion}`);
+              instructions.push(`- Refine the creature's name to be more distinctive while maintaining its core identity. Consider variations like "Greater [Creature]" or "Shadow [Creature]" rather than changing to a completely different creature. ${qaIssue.suggestion}`);
               break;
             case 'Cultural Authenticity':
-              instructions.push(`- Enhance cultural authenticity for ${qaIssue.issue}. ${qaIssue.suggestion}`);
+              instructions.push(`- Enhance cultural authenticity while maintaining the same creature type. Improve the lore and cultural details without changing to a different creature. ${qaIssue.suggestion}`);
               break;
             case 'Consistency':
-              instructions.push(`- Fix consistency issues: ${qaIssue.issue}. ${qaIssue.suggestion}`);
+              instructions.push(`- Fix consistency issues while maintaining the same creature. Ensure the lore, abilities, and cultural details are coherent for this specific creature type. ${qaIssue.suggestion}`);
               break;
             case 'Quality':
-              instructions.push(`- Improve overall quality: ${qaIssue.issue}. ${qaIssue.suggestion}`);
+              instructions.push(`- Improve overall quality while maintaining the same creature type. Enhance the lore, description, and cultural details without changing the fundamental creature identity. ${qaIssue.suggestion}`);
               break;
             default:
               instructions.push(`- Address: ${qaIssue.issue}. ${qaIssue.suggestion}`);
@@ -224,14 +228,14 @@ export class LoreAgent extends BaseAgent {
     const lowerFeedback = feedback.toLowerCase();
     
     if (lowerFeedback.includes('name') && (lowerFeedback.includes('generic') || lowerFeedback.includes('distinctive'))) {
-      return '- Generate a more distinctive, culturally authentic name that is not generic like "Troll", "Dragon", or "Spirit"';
+      return '- Refine the creature\'s name to be more distinctive while maintaining its core identity. Consider variations like "Greater [Creature]" or "Shadow [Creature]" rather than changing to a completely different creature';
     }
     
     if (lowerFeedback.includes('cultural') || lowerFeedback.includes('authenticity')) {
-      return '- Enhance cultural authenticity and regional specificity in the lore';
+      return '- Enhance cultural authenticity while maintaining the same creature type. Improve the lore and cultural details without changing to a different creature';
     }
     
-    return `- Address feedback: ${feedback}`;
+    return `- Address feedback while maintaining the same creature type: ${feedback}`;
   }
 
   /**
