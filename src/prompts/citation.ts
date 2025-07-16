@@ -11,19 +11,20 @@ Monster Information:
 - Region: {{region}}
 - Description: {{description}}
 
-Your job is to identify 2-3 relevant sources that describe the original mythology, folklore, or cultural background that inspired this monster. Focus on:
+Your job is to identify 2-3 relevant sources that describe the original mythology, folklore, or cultural background that inspired this monster. Prioritize sources in this order:
 
-1. **Wikipedia articles** about the specific creature type or mythological figure
-2. **Mythopedia entries** for the region's mythology
-3. **Academic sources** about the region's folklore
-4. **Cultural websites** that describe traditional beliefs
+1. **Academic sources** - University publications, scholarly articles, and research papers about the region's folklore
+2. **Mythopedia entries** - Specialized mythology encyclopedias and cultural reference sites
+3. **Cultural websites** - Official cultural institutions, museums, and traditional belief organizations
+4. **Wikipedia articles** - Only as a last resort when more authoritative sources are not available
 
 Requirements:
 - Return 2-3 references maximum
 - Include title and URL for each source
 - Ensure each source is relevant to the specific monster/region
-- Avoid generic mythology websites
-- Focus on sources that describe the original cultural context
+- **Avoid Wikipedia when possible** - prefer academic and specialized sources
+- Focus on sources that describe the original cultural context and historical background
+- Prioritize sources that provide deeper cultural and historical context rather than general overviews
 
 ${JSON_OUTPUT_DIRECTIVE}
 
@@ -46,22 +47,22 @@ Return the citations in valid JSON format:
       },
       output: `[
   {
-    "title": "Kitsune - Wikipedia",
-    "url": "https://en.wikipedia.org/wiki/Kitsune",
-    "source": "Wikipedia",
-    "relevance": "Comprehensive article about kitsune in Japanese folklore, including the nine-tailed fox mythology"
+    "title": "The Role of Kitsune in Japanese Shinto Beliefs: A Cultural Analysis",
+    "url": "https://www.japanesestudies.org.uk/articles/kitsune-shinto",
+    "source": "Academic",
+    "relevance": "Scholarly analysis of kitsune mythology in Japanese Shinto religion, including the nine-tailed fox and sacred grove connections"
   },
   {
     "title": "Yokai: Japanese Folklore - Mythopedia",
     "url": "https://mythopedia.com/topics/yokai",
     "source": "Mythopedia",
-    "relevance": "Overview of yokai creatures in Japanese mythology, including fox spirits and their connection to Shinto beliefs"
+    "relevance": "Specialized encyclopedia entry on yokai creatures in Japanese mythology, including fox spirits and their cultural significance"
   },
   {
-    "title": "Sacred Groves in Japanese Shinto Tradition",
-    "url": "https://www.japanesestudies.org.uk/articles/sacred-groves",
-    "source": "Academic",
-    "relevance": "Academic article about the significance of sacred groves in Shinto religion and their connection to spirit beings"
+    "title": "Sacred Groves and Spirit Beings in Japanese Tradition",
+    "url": "https://www.japanesemuseum.org/folklore/sacred-groves",
+    "source": "Cultural",
+    "relevance": "Cultural institution's documentation of sacred groves in Japanese tradition and their connection to spirit beings"
   }
 ]`,
       description: 'Japanese yokai with multiple relevant sources'

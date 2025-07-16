@@ -165,6 +165,10 @@ export class RefinementPipeline {
       console.log(`   • config.generation.generatePDF: ${config.generation.generatePDF}`);
       console.log(`   • config.generation.enablePDFGeneration: ${config.generation.enablePDFGeneration}`);
       
+      // Always create monster JSON for persistence
+      console.log('📄 Creating monster JSON for persistence...');
+      let completeMonsterJson: any;
+      
       if (config.generation.generatePDF) {
         console.log('\n📄 Generating Final PDF Layout...');
         currentMonster = await this.generateFinalPDF(currentMonster);
@@ -174,9 +178,27 @@ export class RefinementPipeline {
         console.log(`   • PDF URL: ${currentMonster.pdfUrl || 'NOT GENERATED'}`);
         console.log(`   • Image URL: ${currentMonster.imageUrl || 'NOT GENERATED'}`);
         console.log(`   • PDF Layout exists: ${!!currentMonster.pdfLayout}`);
+        
+        // Use the monster JSON created in generateFinalPDF
+        completeMonsterJson = currentMonster.monsterJson;
       } else {
         console.log('\n📄 Skipping PDF generation (disabled)');
+        
+        // Create monster JSON when PDF generation is disabled
+        completeMonsterJson = {
+          name: currentMonster.name,
+          region: currentMonster.region,
+          lore: currentMonster.lore,
+          statblock: currentMonster.statblock,
+          citations: currentMonster.citations || [],
+          art: currentMonster.art || {},
+          pdfLayout: null // No PDF layout when PDF generation is disabled
+        };
+        
+        currentMonster.monsterJson = completeMonsterJson;
       }
+      
+      console.log('✅ Monster JSON created for persistence');
 
       // Save final monster
       if (this.config.enablePersistence) {
