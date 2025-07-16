@@ -115,6 +115,30 @@
 - [ ] Performance optimization tips
 - [ ] Risk assessment and mitigation strategies
 
+## Backlog / Ideas
+- [ ] Add user feedback/review interface
+- [ ] Support multiple image styles or variants
+- [ ] Gamify monster creation or allow public submissions
+- [ ] Build search frontend with filtering by region/type
+- [ ] Enable export to VTTs or game engines
+- [ ] Add cost tracking and usage metrics
+- [ ] Create exportable reports
+- [ ] Add database health monitoring
+- [ ] Add troubleshooting guides and common issues
+- [ ] Performance optimization tips
+- [ ] Risk assessment and mitigation strategies
+- [ ] Implement D&D 5e Stat Block Formatting
+  - [ ] Add proper bold formatting for section headers (ARMOR CLASS, HIT POINTS, etc.)
+  - [ ] Format ability scores with modifiers (STR 16 (+3))
+  - [ ] Use italics for attack descriptions ("Melee Weapon Attack:", "Hit:")
+  - [ ] Format damage expressions with dice notation (8 (1d8 + 4))
+  - [ ] Include proper ranges and reach specifications (reach 5 ft.)
+  - [ ] Add saving throw DC calculations and display
+  - [ ] Format condition immunities as adjectives
+  - [ ] Ensure proper visual hierarchy with bold headers
+  - [ ] Follow established D&D conventions for monster stat blocks
+  - [ ] Make formatting crucial for DM quick reference during combat
+
 ## Completed Tasks
 - [x] Test Full Refinement Pipeline
 - [x] Delay PDF Generation
