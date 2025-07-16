@@ -68,7 +68,132 @@
 
 ## Next Priority Tasks
 
-### Unified AI Provider System
+### UI Development - Next.js Dashboard
+- [ ] **Setup Next.js Dashboard Project**: Create new Next.js application for monster generation UI
+    - [ ] Initialize Next.js project with TypeScript and Tailwind CSS
+    - [ ] Set up project structure and routing
+    - [ ] Configure API routes for backend integration
+    - [ ] Add authentication (if needed)
+    - [ ] Set up development environment
+- [ ] **Dashboard Overview Page**: Create main dashboard with overview and quick actions
+    - [ ] Design dashboard layout with stats cards
+    - [ ] Add real-time generation status display
+    - [ ] Create quick action buttons (start generation, view recent monsters)
+    - [ ] Add QA score summary and success rate metrics
+    - [ ] Implement WebSocket connection for live updates
+    - [ ] Add progress indicators for active generations
+- [ ] **Generation Page**: Interface for starting and monitoring monster generation
+    - [ ] Create generation form with region selection and settings
+    - [ ] Add real-time progress tracking for each generation step
+    - [ ] Display current agent activity (Lore, StatBlock, Citation, etc.)
+    - [ ] Show QA review results and refinement status
+    - [ ] Add ability to pause/resume generation
+    - [ ] Implement error handling and retry mechanisms
+- [ ] **Monsters Page**: Browse and manage all generated monsters
+    - [ ] Create monster list with filtering and search
+    - [ ] Add monster detail view with all data (lore, stats, citations, art)
+    - [ ] Implement PDF preview and download functionality
+    - [ ] Add QA score display and refinement history
+    - [ ] Create bulk actions (delete, re-run refinement, export)
+    - [ ] Add sorting by date, region, QA score, etc.
+- [ ] **Refinement Page**: View and manage refinement sessions
+    - [ ] Display refinement session list with status and metrics
+    - [ ] Show detailed iteration history for each session
+    - [ ] Visualize QA score improvements over iterations
+    - [ ] Display agent actions and feedback processing
+    - [ ] Add ability to re-run refinement on existing monsters
+    - [ ] Show common issues and improvement patterns
+- [ ] **Analytics Page**: Comprehensive metrics and insights
+    - [ ] Create QA score distribution charts
+    - [ ] Show refinement success rates and iteration counts
+    - [ ] Display common issue categories and trends
+    - [ ] Add cost tracking and usage metrics
+    - [ ] Show agent performance and effectiveness
+    - [ ] Create exportable reports and data visualization
+- [ ] **Database Explorer Page**: Direct database browsing and management
+    - [ ] Create database table browser interface
+    - [ ] Add monster data viewer with JSON formatting
+    - [ ] Implement citation and art prompt browsing
+    - [ ] Add refinement session data explorer
+    - [ ] Create data export functionality
+    - [ ] Add database health monitoring
+- [ ] **Documentation Page**: Comprehensive documentation with Mermaid diagrams
+    - [ ] Create documentation layout with navigation and sub-pages
+    - [ ] **Architecture Documentation Page**:
+        - [ ] Add system component diagram with detailed explanation
+        - [ ] Document data flow between components
+        - [ ] Explain agent orchestration and communication patterns
+        - [ ] Add deployment architecture diagram
+    - [ ] **Refinement Pipeline Documentation Page**:
+        - [ ] Create detailed refinement flow diagram with explanation
+        - [ ] Document QA feedback loop and issue classification
+        - [ ] Explain iteration logic and stopping criteria
+        - [ ] Add agent-specific improvement strategies
+    - [ ] **Agent Documentation Page**:
+        - [ ] Create agent interaction sequence diagram with explanation
+        - [ ] Document each agent's purpose, inputs, and outputs
+        - [ ] Add agent-specific prompt engineering details
+        - [ ] Explain QA feedback integration for each agent
+    - [ ] **Database Documentation Page**:
+        - [ ] Create database schema diagram with entity relationships
+        - [ ] Document table purposes and data flow
+        - [ ] Explain refinement session tracking
+        - [ ] Add data persistence patterns
+    - [ ] **API Documentation Page**:
+        - [ ] Create API endpoint diagram with request/response flows
+        - [ ] Document each endpoint's purpose and parameters
+        - [ ] Add authentication and error handling patterns
+        - [ ] Include code examples and integration guides
+    - [ ] **Deployment Documentation Page**:
+        - [ ] Create deployment architecture diagram
+        - [ ] Document environment setup and configuration
+        - [ ] Add troubleshooting guides and common issues
+        - [ ] Include performance optimization tips
+    - [ ] **Development Roadmap Documentation Page**:
+        - [ ] Create roadmap timeline diagram with current progress
+        - [ ] Document completed phases and achievements
+        - [ ] Add upcoming milestones and target dates
+        - [ ] Include feature priorities and development phases
+        - [ ] Show technical debt and improvement areas
+        - [ ] Add resource allocation and team planning
+        - [ ] Include risk assessment and mitigation strategies
+    - [ ] **Design Patterns Documentation Page**:
+        - [ ] Document Chain of Responsibility pattern in refinement process
+        - [ ] Add Strategy pattern for different improvement strategies
+        - [ ] Include Observer pattern for event-driven communication
+        - [ ] Document State Machine pattern for refinement states
+        - [ ] Add Pipeline pattern for modular processing stages
+        - [ ] Create pattern interaction diagrams showing how patterns work together
+        - [ ] Include code examples and implementation details
+        - [ ] Add benefits and trade-offs for each pattern
+    - [ ] **Documentation Repository Section**:
+        - [x] Create centralized documentation content storage in `docs/content/`
+        - [x] Add architecture documentation directory (`docs/content/architecture/`)
+        - [x] Add refinement documentation directory (`docs/content/refinement/`)
+        - [x] Add agents documentation directory (`docs/content/agents/`)
+        - [x] Add database documentation directory (`docs/content/database/`)
+        - [x] Add API documentation directory (`docs/content/api/`)
+        - [x] Add deployment documentation directory (`docs/content/deployment/`)
+        - [x] Add roadmap documentation directory (`docs/content/roadmap/`)
+        - [x] Add design patterns documentation directory (`docs/content/design-patterns/`)
+        - [x] Create README.md explaining documentation structure and guidelines
+        - [x] Add sample documentation file (design-patterns/refinement-patterns.md)
+        - [ ] Add architecture overview text and explanations
+        - [ ] Store refinement pipeline flow descriptions
+        - [ ] Include agent interaction documentation
+        - [ ] Add database schema explanations
+        - [ ] Store API documentation content
+        - [ ] Include deployment guide content
+        - [ ] Add design patterns explanations and examples
+        - [ ] Create reusable documentation components
+        - [ ] Add version control for documentation content
+        - [ ] Include markdown templates for consistent formatting
+    - [ ] **General Documentation Features**:
+        - [ ] Implement search functionality across all documentation
+        - [ ] Add version control for documentation updates
+        - [ ] Create table of contents with navigation
+        - [ ] Add print-friendly documentation export
+- [ ] **Unified AI Provider System
 - [ ] **Research and Evaluate AI Providers**: Comprehensive analysis of unified AI API providers
     - [ ] **Together AI**: Evaluate pricing, model availability, API quality, and reliability
     - [ ] **OpenRouter**: Compare aggregation features, supported models, and cost structure
