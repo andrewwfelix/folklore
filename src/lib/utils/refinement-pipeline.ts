@@ -14,6 +14,7 @@ export interface RefinementConfig {
   targetQAScore: number;
   enableLogging: boolean;
   enablePersistence: boolean;
+  delayPDFGeneration?: boolean; // If true, PDF is generated only after refinement is complete
 }
 
 export interface RefinementResult {
@@ -42,7 +43,8 @@ export class RefinementPipeline {
     maxIterations: 3,
     targetQAScore: 4.0,
     enableLogging: true,
-    enablePersistence: true
+    enablePersistence: true,
+    delayPDFGeneration: true // Default to delaying PDF generation
   }) {
     this.logger = new RefinementLogger();
     this.persistence = new MonsterPersistence();
@@ -175,14 +177,23 @@ export class RefinementPipeline {
         }
       }
 
+      // Generate final PDF layout after refinement is complete
+      console.log('\n📄 Generating Final PDF Layout...');
+      currentMonster = await this.generateFinalPDF(currentMonster);
+
       // Save final monster
       if (this.config.enablePersistence) {
         console.log('\n💾 Saving Final Monster to Database...');
+        
+        // Debug: Check statblock data
+        console.log(`🔍 Debug - Statblock type: ${typeof currentMonster.statblock}`);
+        console.log(`🔍 Debug - Statblock value:`, currentMonster.statblock);
+        
         const monsterData: any = {
           name: currentMonster.name,
           region: currentMonster.region,
           lore: currentMonster.lore,
-          statblock: currentMonster.statblock,
+          statBlock: currentMonster.statblock, // Convert to camelCase for persistence
           citations: currentMonster.citations || [],
           art: currentMonster.art || {},
           pdfLayout: currentMonster.pdfLayout,
@@ -248,7 +259,7 @@ export class RefinementPipeline {
   }
 
   /**
-   * Generate a monster using all agents
+   * Generate a monster using all agents (without PDF generation)
    */
   private async generateMonster(region: string): Promise<any> {
     console.log('🎭 Generating lore...');
@@ -279,16 +290,10 @@ export class RefinementPipeline {
       region: loreResult.region,
       lore: loreResult.lore
     });
-    
-    console.log('📄 Generating PDF layout...');
-    const pdfResult = await this.pdfAgent.execute({
-      name: loreResult.name,
-      region: loreResult.region,
-      lore: loreResult.lore,
-      statblock: statResult.statblock,
-      citations: citationResult.citations,
-      artPrompt: artResult.artPrompt
-    });
+
+    // PDF generation is skipped during refinement iterations to save resources
+    // and avoid generating PDFs for intermediate versions that will be refined
+    // Final PDF will be generated after refinement is complete with the best version
 
     return {
       name: loreResult.name,
@@ -296,7 +301,27 @@ export class RefinementPipeline {
       lore: loreResult.lore,
       statblock: statResult.statblock,
       citations: citationResult.citations,
-      art: artResult.artPrompt,
+      art: artResult.artPrompt
+    };
+  }
+
+  /**
+   * Generate final PDF layout for the refined monster
+   */
+  private async generateFinalPDF(monster: any): Promise<any> {
+    console.log('📄 Generating Final PDF Layout...');
+    
+    const pdfResult = await this.pdfAgent.execute({
+      name: monster.name,
+      region: monster.region,
+      lore: monster.lore,
+      statblock: monster.statblock,
+      citations: monster.citations || [],
+      artPrompt: monster.art || {}
+    });
+
+    return {
+      ...monster,
       pdfLayout: pdfResult.pdfLayout
     };
   }
@@ -327,7 +352,7 @@ export class RefinementPipeline {
    */
   private async processQAFeedback(qaReview: QAReview): Promise<any[]> {
     const actionableIssues = qaReview.issues.filter(issue => 
-      issue.severity === 'Critical' || issue.severity === 'Major'
+      issue.severity === 'Critical' || issue.severity === 'Major' || issue.severity === 'Minor'
     );
 
     console.log(`🔍 Processing ${actionableIssues.length} actionable issues...`);
@@ -340,6 +365,9 @@ export class RefinementPipeline {
    */
   private async applyImprovements(monster: any, issues: any[]): Promise<string[]> {
     const improvements: string[] = [];
+
+    // Debug: Check statblock before improvements
+    console.log(`🔍 Debug - Before improvements - Statblock exists: ${!!monster.statblock}`);
 
     for (const issue of issues) {
       console.log(`🔧 Applying improvement for: ${issue.category} - ${issue.issue}`);
@@ -370,6 +398,7 @@ export class RefinementPipeline {
             break;
 
           case 'Cultural Authenticity':
+          case 'Cultural':
             // Re-run LoreAgent with cultural feedback
             const culturalResult = await this.loreAgent.execute({
               region: monster.region,
@@ -399,6 +428,18 @@ export class RefinementPipeline {
             improvements.push(`Improved overall quality`);
             break;
 
+          case 'Balance':
+            // Re-run StatBlockAgent with balance feedback
+            const balanceResult = await this.statBlockAgent.execute({
+              lore: monster.lore,
+              name: monster.name,
+              region: monster.region,
+              qaFeedback: [issue]
+            });
+            monster.statblock = balanceResult.statblock;
+            improvements.push(`Improved stat block balance`);
+            break;
+
           default:
             console.log(`⚠️  Unknown issue category: ${issue.category}`);
         }
@@ -406,6 +447,9 @@ export class RefinementPipeline {
         console.error(`❌ Failed to apply improvement for ${issue.category}:`, error);
       }
     }
+
+    // Debug: Check statblock after improvements
+    console.log(`🔍 Debug - After improvements - Statblock exists: ${!!monster.statblock}`);
 
     return improvements;
   }
@@ -430,10 +474,12 @@ export class RefinementPipeline {
     switch (issueCategory) {
       case 'Name Distinctiveness':
       case 'Cultural Authenticity':
+      case 'Cultural':
       case 'Consistency':
       case 'Quality':
         return 'LoreAgent';
       case 'Stat Block Balance':
+      case 'Balance':
         return 'StatBlockAgent';
       case 'Art Style':
         return 'ArtPromptAgent';

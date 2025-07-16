@@ -48,9 +48,10 @@ async function generateWithRefinement() {
     // Create refinement pipeline
     const pipeline = new RefinementPipeline({
       maxIterations: 3,
-      targetQAScore: 4.5, // Increased from 4.0 to force refinement
+      targetQAScore: 4.8, // Increased to force refinement iterations
       enableLogging: true,
-      enablePersistence: true
+      enablePersistence: true,
+      delayPDFGeneration: true // PDF generated only after refinement is complete
     });
     
     // Generate monsters with refinement
