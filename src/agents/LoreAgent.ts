@@ -4,6 +4,7 @@ import { buildLorePrompt } from '@/prompts';
 import OpenAI from 'openai';
 import { QAIssue } from '@/types/qa-feedback';
 import { config } from '@/config';
+import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
 export interface LoreAgentInput extends MonsterGenerationInput {
   /**
@@ -99,7 +100,17 @@ export class LoreAgent extends BaseAgent {
       throw new Error('Failed to generate lore');
     }
 
-    return lore.trim();
+    try {
+      // Extract JSON using the same utility function as other agents
+      const parsedLore = extractJsonWithFallback(lore.trim());
+      if (!parsedLore) {
+        throw new Error('Failed to extract valid JSON from lore response');
+      }
+      return JSON.stringify(parsedLore); // Return as string for backward compatibility
+    } catch (parseError) {
+      this.log('Failed to parse lore JSON, returning raw response');
+      return lore.trim();
+    }
   }
 
   /**
