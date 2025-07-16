@@ -1,4 +1,5 @@
 import { PromptTemplate } from './index';
+import { JSON_OUTPUT_DIRECTIVE } from './json-directive';
 
 export const QA_REVIEW_PROMPT: PromptTemplate = {
   name: 'QA Review',
@@ -13,37 +14,46 @@ Monster Information:
 - Citations: {{citations}}
 - Art Prompt: {{artPrompt}}
 
-Review Criteria:
+Review Criteria (be consistent and thorough):
 1. **Name Distinctiveness**: Is the monster name unique and distinctive? Avoid generic names like "Troll", "Dragon", "Spirit" without modifiers. Names should reflect cultural origins and unique characteristics.
-2. **Cultural Authenticity**: Does the lore match the cultural reference and region?
-3. **Stat Block Balance**: Is the stat block balanced and rule-compliant for D&D 5e?
-4. **Completeness**: Are all required fields present (lore, stats, citations, art)?
-5. **Mechanical Clarity**: Are the mechanics clear and playable?
-6. **Consistency**: Do the lore, stats, and art prompt align with each other?
-7. **Quality**: Is the content well-written and engaging?
-8. **Name-Lore Alignment**: Does the monster's name match what's described in the lore?
+2. **Cultural Authenticity**: Does the lore match the cultural reference and region? Are cultural elements accurate and well-integrated?
+3. **Stat Block Balance**: Is the stat block balanced and rule-compliant for D&D 5e? Check CR, HP, AC, abilities for balance.
+4. **Completeness**: Are all required fields present and properly filled? Check lore, stats, citations, art prompt.
+5. **Mechanical Clarity**: Are the mechanics clear and playable? Can a DM run this monster without confusion?
+6. **Consistency**: Do the lore, stats, and art prompt align with each other? No contradictions.
+7. **Quality**: Is the content well-written and engaging? Good prose, clear descriptions.
+8. **Name-Lore Alignment**: Does the monster's name match what's described in the lore? No naming inconsistencies.
+
+IMPORTANT GUIDELINES:
+- Be CONSISTENT in your evaluation - don't change standards between reviews
+- Only flag issues that are ACTUALLY problems, not preferences
+- For "Completeness" - only flag if something is completely missing, not if it could be better
+- For "Quality" - only flag if writing is poor or unclear, not if it could be more detailed
+- Be SPECIFIC about what's wrong and how to fix it
+- Don't create new issues that weren't problems before unless they're clearly new problems
 
 For each issue found, provide:
-- **Severity**: Critical, Major, Minor
-- **Issue**: Description of the problem
-- **Suggestion**: How to fix it
+- **Severity**: Critical (breaks functionality), Major (significant problem), Minor (cosmetic/optional)
+- **Category**: One of the 8 criteria above
+- **Issue**: Specific description of the problem
+- **Suggestion**: Clear, actionable way to fix it
 
-IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+${JSON_OUTPUT_DIRECTIVE}
 
 Return the QA review in valid JSON format:
 {
-  "overallScore": number (1-5),
-  "status": "pass" | "fail" | "needs_revision",
+  "overallScore": number (1-5, where 5 is excellent),
+  "status": "pass" | "needs_revision",
   "issues": [
     {
       "severity": "Critical|Major|Minor",
-      "category": "Cultural|Balance|Completeness|Clarity|Consistency|Quality",
-      "issue": "Description of the problem",
-      "suggestion": "How to fix it"
+      "category": "Name Distinctiveness|Cultural Authenticity|Stat Block Balance|Completeness|Mechanical Clarity|Consistency|Quality|Name-Lore Alignment",
+      "issue": "Specific description of the problem",
+      "suggestion": "Clear, actionable fix"
     }
   ],
-  "summary": "Brief overall assessment",
-  "recommendations": ["List of specific improvements needed"]
+  "summary": "Brief overall assessment focusing on strengths and key issues",
+  "recommendations": ["List of specific, actionable improvements needed"]
 }`,
   variables: ['name', 'region', 'lore', 'statblock', 'citations', 'artPrompt'],
   examples: [

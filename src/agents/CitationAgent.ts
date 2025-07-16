@@ -2,6 +2,8 @@ import { BaseAgent } from './base/BaseAgent';
 import { AgentType } from '@/types';
 import { buildCitationPrompt } from '@/prompts';
 import OpenAI from 'openai';
+import { config } from '@/config';
+import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
 export interface CitationAgentInput {
   name: string;
@@ -48,6 +50,12 @@ export class CitationAgent extends BaseAgent {
    * Generates citations, incorporating QA feedback as explicit instructions if provided.
    */
   private async generateCitations(input: { name: string; region: string; description: string; qaFeedback?: string | string[] }): Promise<any[]> {
+    // Check if mock mode is enabled
+    if (config.development.mockLLM) {
+      this.log('Using mock mode - returning test citations');
+      return this.getMockCitations(input);
+    }
+
     // Build the base prompt
     let prompt = buildCitationPrompt({
       name: input.name,
@@ -64,7 +72,7 @@ export class CitationAgent extends BaseAgent {
     }
     
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4',
+      model: config.openai.model,
       messages: [
         {
           role: 'system',
@@ -85,17 +93,50 @@ export class CitationAgent extends BaseAgent {
     }
 
     try {
-      // Clean up the response to extract JSON
-      const jsonMatch = citationsText.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON array found in response');
+      // Extract JSON using the new utility function
+      const citations = extractJsonWithFallback(citationsText);
+      if (!citations) {
+        throw new Error('Failed to extract valid JSON from citation response');
       }
-
-      const citations = JSON.parse(jsonMatch[0]);
       return citations;
     } catch (parseError) {
       this.log('Failed to parse citations JSON, retrying...');
       throw new Error(`Invalid JSON in citations response: ${parseError}`);
     }
+  }
+
+  /**
+   * Returns mock citations for testing
+   */
+  private getMockCitations(_input: any): any[] {
+    return [
+      {
+        title: "Japanese Yokai: The Complete Guide",
+        author: "Mizuki, Shigeru",
+        year: 2018,
+        publisher: "Kodansha International",
+        url: "https://www.kodansha.co.jp/english/books/isbn/9781568365734/",
+        type: "book",
+        relevance: "Comprehensive guide to Japanese supernatural creatures including the nue"
+      },
+      {
+        title: "The Book of Yokai: Mysterious Creatures of Japanese Folklore",
+        author: "Foster, Michael Dylan",
+        year: 2015,
+        publisher: "University of California Press",
+        url: "https://www.ucpress.edu/book/9780520271029/the-book-of-yokai",
+        type: "book",
+        relevance: "Academic study of Japanese folklore and supernatural beings"
+      },
+      {
+        title: "Nue: The Japanese Chimera",
+        author: "Yanagita, Kunio",
+        year: 1930,
+        publisher: "Japanese Folklore Society",
+        url: "https://www.japanesefolklore.org/archives/nue-study",
+        type: "journal_article",
+        relevance: "Original research on the nue creature and its cultural significance"
+      }
+    ];
   }
 } 

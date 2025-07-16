@@ -2,6 +2,7 @@ import { BaseAgent } from './base/BaseAgent';
 import { AgentType } from '@/types';
 import { buildPDFGenerationPrompt } from '@/prompts';
 import OpenAI from 'openai';
+import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
 export class PDFAgent extends BaseAgent {
   private openai: OpenAI;
@@ -76,14 +77,11 @@ export class PDFAgent extends BaseAgent {
     }
 
     try {
-      // Clean up the response to extract JSON
-      const jsonMatch = pdfLayoutText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON found in response');
+      // Extract JSON using the new utility function
+      const pdfLayout = extractJsonWithFallback(pdfLayoutText);
+      if (!pdfLayout) {
+        throw new Error('Failed to extract valid JSON from PDF layout response');
       }
-
-      // Try to parse the JSON
-      const pdfLayout = JSON.parse(jsonMatch[0]);
       return pdfLayout;
     } catch (parseError) {
       this.log('Failed to parse PDF layout JSON, creating fallback layout...');

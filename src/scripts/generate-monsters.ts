@@ -21,6 +21,7 @@ async function main() {
     console.log(`   • Batch Size: ${config.generation.batchSize}`);
     console.log(`   • Image Generation: ${config.generation.enableImageGeneration ? '✅' : '❌'}`);
     console.log(`   • PDF Generation: ${config.generation.enablePDFGeneration ? '✅' : '❌'}`);
+    console.log(`   • Art Generation: ${config.generation.enableArtGeneration ? '✅' : '❌'}`);
     console.log(`   • QA Review: ${config.quality.enableQAReview ? '✅' : '❌'}`);
     
     console.log(`\n🎨 Image Settings:`);

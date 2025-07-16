@@ -1,4 +1,5 @@
 import { PromptTemplate } from './index';
+import { JSON_OUTPUT_DIRECTIVE } from './json-directive';
 
 export const ART_PROMPT: PromptTemplate = {
   name: 'Art Prompt Generation',
@@ -19,7 +20,7 @@ Requirements:
 - Avoid clichés and generic fantasy art descriptions
 - Match art style to the myth's region when possible
 
-IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+${JSON_OUTPUT_DIRECTIVE}
 
 Return the art prompt in valid JSON format:
 {

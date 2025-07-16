@@ -3,6 +3,8 @@ import { AgentType } from '@/types';
 import { buildStatBlockPrompt } from '@/prompts';
 import OpenAI from 'openai';
 import { QAIssue } from '@/types/qa-feedback';
+import { config } from '@/config';
+import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
 export interface StatBlockAgentInput {
   lore: string;
@@ -49,6 +51,12 @@ export class StatBlockAgent extends BaseAgent {
    * Generates stat block, incorporating QA feedback as explicit instructions if provided.
    */
   private async generateStatBlock(input: { lore: string; name?: string; region?: string; qaFeedback?: string | string[] | QAIssue[] | (string | QAIssue)[] }): Promise<any> {
+    // Check if mock mode is enabled
+    if (config.development.mockLLM) {
+      this.log('Using mock mode - returning test stat block');
+      return this.getMockStatBlock(input);
+    }
+
     // Build the base prompt
     let prompt = buildStatBlockPrompt({
       lore: input.lore
@@ -62,40 +70,116 @@ export class StatBlockAgent extends BaseAgent {
       }
     }
     
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
+    // Try up to 3 times to get valid JSON
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      let response: any;
+      try {
+        response = await this.openai.chat.completions.create({
+          model: config.openai.model,
+          messages: [
+            {
+              role: 'system',
+              content: attempt === 1 
+                ? 'You are a game designer writing D&D 5e-compatible stat blocks. Return only valid JSON without any markdown formatting or additional text. When given QA feedback, address the specific balance and mechanical issues mentioned.'
+                : 'Your previous response contained invalid JSON. Please reformat your response as valid JSON only. Do not include any text, explanations, or markdown outside the JSON object. Ensure all property names are double-quoted and there are no trailing commas.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.3
+        });
+
+        const statblockText = response.choices[0]?.message?.content;
+        if (!statblockText) {
+          throw new Error('Failed to generate stat block');
+        }
+
+        // Extract JSON using the new utility function
+        const statblock = extractJsonWithFallback(statblockText);
+        if (!statblock) {
+          throw new Error('Failed to extract valid JSON from response');
+        }
+        
+        return statblock;
+        
+      } catch (parseError) {
+        this.log(`Attempt ${attempt}/3 failed to parse stat block JSON`);
+        if (attempt === 3) {
+          this.log(`Raw response: ${response?.choices[0]?.message?.content || 'No response'}`);
+          throw new Error(`Invalid JSON in stat block response after 3 attempts: ${parseError}`);
+        }
+        // Continue to next attempt
+      }
+    }
+  }
+
+  /**
+   * Returns mock stat block for testing
+   */
+  private getMockStatBlock(_input: any): any {
+    return {
+      name: "Nue",
+      size: "Medium",
+      type: "monstrosity",
+      alignment: "neutral evil",
+      armorClass: 15,
+      hitPoints: 45,
+      hitDice: "6d8 + 18",
+      speed: {
+        walk: 30,
+        fly: 60
+      },
+      abilityScores: {
+        strength: 16,
+        dexterity: 14,
+        constitution: 16,
+        intelligence: 10,
+        wisdom: 12,
+        charisma: 8
+      },
+      savingThrows: {
+        strength: "+6",
+        constitution: "+6"
+      },
+      skills: {
+        "Stealth": "+5",
+        "Perception": "+4"
+      },
+      damageResistances: ["cold", "necrotic"],
+      damageImmunities: [],
+      conditionImmunities: [],
+      senses: {
+        darkvision: 60,
+        passivePerception: 14
+      },
+      languages: ["Common", "Abyssal"],
+      challengeRating: 3,
+      experiencePoints: 700,
+      abilities: [
         {
-          role: 'system',
-          content: 'You are a game designer writing D&D 5e-compatible stat blocks. Return only valid JSON without any markdown formatting or additional text. When given QA feedback, address the specific balance and mechanical issues mentioned.'
-        },
-        {
-          role: 'user',
-          content: prompt
+          name: "Shadow Form",
+          description: "The nue can transform into a black cloud as a bonus action. While in this form, it has resistance to all damage and can move through spaces as narrow as 1 inch wide."
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.3
-    });
-
-    const statblockText = response.choices[0]?.message?.content;
-    if (!statblockText) {
-      throw new Error('Failed to generate stat block');
-    }
-
-    try {
-      // Clean up the response to extract JSON
-      const jsonMatch = statblockText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON found in response');
-      }
-
-      const statblock = JSON.parse(jsonMatch[0]);
-      return statblock;
-    } catch (parseError) {
-      this.log('Failed to parse stat block JSON, retrying...');
-      throw new Error(`Invalid JSON in stat block response: ${parseError}`);
-    }
+      actions: [
+        {
+          name: "Multiattack",
+          description: "The nue makes two attacks: one with its bite and one with its claws."
+        },
+        {
+          name: "Bite",
+          description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) piercing damage plus 7 (2d6) necrotic damage."
+        },
+        {
+          name: "Claws",
+          description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 7 (1d6 + 4) slashing damage."
+        }
+      ],
+      legendaryActions: []
+    };
   }
 
   /**

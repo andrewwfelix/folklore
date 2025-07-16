@@ -1,4 +1,5 @@
 import { PromptTemplate } from './index';
+import { JSON_OUTPUT_DIRECTIVE } from './json-directive';
 
 export const PDF_GENERATION_PROMPT: PromptTemplate = {
   name: 'PDF Generation',
@@ -23,7 +24,7 @@ Requirements:
 - List citations in a clean, academic format
 - Include art description and style information
 
-IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+${JSON_OUTPUT_DIRECTIVE}
 
 Return the PDF layout specification in valid JSON format:
 {

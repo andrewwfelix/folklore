@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 export interface Config {
   // Database
@@ -31,6 +31,8 @@ export interface Config {
     timeoutMs: number;                // Timeout for each generation step
     enableImageGeneration: boolean;   // Whether to generate images
     enablePDFGeneration: boolean;     // Whether to generate PDFs
+    enableArtGeneration: boolean;     // Whether to generate art prompts
+    generatePDF: boolean;             // Whether to generate PDFs (from GENERATE_PDF env var)
   };
   
   // Quality Settings
@@ -39,6 +41,16 @@ export interface Config {
     imageSize: '256x256' | '512x512' | '1024x1024';
     enableQAReview: boolean;          // Enable QA review step
     strictMode: boolean;              // Strict validation mode
+  };
+  
+  // Refinement Settings
+  refinement: {
+    useScoringSystem: boolean;        // Use scoring system vs issue resolution
+    scoringSystemTarget: number;      // Target score (1-5 scale)
+    mockMode: boolean;                // Use mock responses for refinement
+    stopCondition: 'score' | 'issues'; // Stop based on score or remaining issues
+    targetScore: number;              // Target score for score-based stopping
+    maxIterations: number;            // Maximum refinement iterations
   };
   
   // Development
@@ -75,6 +87,8 @@ export const config: Config = {
     timeoutMs: parseInt(process.env['GENERATION_TIMEOUT_MS'] || '30000'),
     enableImageGeneration: process.env['ENABLE_IMAGE_GENERATION'] !== 'false',
     enablePDFGeneration: process.env['ENABLE_PDF_GENERATION'] !== 'false',
+    enableArtGeneration: process.env['ENABLE_ART_GENERATION'] !== 'false',
+    generatePDF: process.env['GENERATE_PDF'] !== 'false',
   },
   
   quality: {
@@ -82,6 +96,15 @@ export const config: Config = {
     imageSize: (process.env['IMAGE_SIZE'] as '256x256' | '512x512' | '1024x1024') || '512x512',
     enableQAReview: process.env['ENABLE_QA_REVIEW'] !== 'false',
     strictMode: process.env['STRICT_MODE'] === 'true',
+  },
+  
+  refinement: {
+    useScoringSystem: process.env['USE_SCORING_SYSTEM'] !== 'false',
+    scoringSystemTarget: parseFloat(process.env['SCORING_SYSTEM_TARGET'] || '4.8'),
+    mockMode: process.env['MOCK_MODE'] === 'true',
+    stopCondition: (process.env['STOP_CONDITION'] as 'score' | 'issues') || 'issues',
+    targetScore: parseFloat(process.env['TARGET_SCORE'] || '4.5'),
+    maxIterations: parseInt(process.env['MAX_ITERATIONS'] || '3'),
   },
   
   development: {

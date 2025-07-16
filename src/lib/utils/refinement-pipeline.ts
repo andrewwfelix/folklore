@@ -8,6 +8,7 @@ import { ArtPromptAgent } from '../../agents/ArtPromptAgent';
 import { PDFAgent } from '../../agents/PDFAgent';
 import { classifyQAIssues } from './qa-classification';
 import { QAReview } from '../../types/qa-feedback';
+import { config } from '../../config';
 
 export interface RefinementConfig {
   maxIterations: number;
@@ -64,6 +65,9 @@ export class RefinementPipeline {
     console.log('🚀 Starting Refinement Pipeline');
     console.log(`Target QA Score: ${this.config.targetQAScore}`);
     console.log(`Max Iterations: ${this.config.maxIterations}`);
+    console.log(`Mock Mode: ${config.refinement.mockMode}`);
+    console.log(`Stop Condition: ${config.refinement.stopCondition}`);
+    console.log(`Target Score: ${config.refinement.targetScore}`);
     console.log('=====================================\n');
 
     let sessionId: string | undefined;
@@ -126,7 +130,11 @@ export class RefinementPipeline {
         console.log(`\n🔄 Starting Iteration ${iteration}/${this.config.maxIterations}`);
         
         const iterationStart = Date.now();
-        const iterationIssues = await this.processQAFeedback(initialQA);
+        
+        // Run QA review on current monster to get fresh issues
+        console.log('\n🔍 Running QA Review to Identify Issues...');
+        const currentQA = await this.runQAReview(currentMonster);
+        const iterationIssues = await this.processQAFeedback(currentQA);
         
         if (iterationIssues.length === 0) {
           console.log('✅ No actionable issues found - stopping refinement');
@@ -146,6 +154,11 @@ export class RefinementPipeline {
 
         console.log(`📊 QA Score: ${currentQAScore}/5.0 (was ${previousScore}/5.0)`);
         console.log(`⚠️  Remaining Issues: ${iterationQA.issues.length}`);
+        console.log(`🔍 Debug - Score improvement: ${currentQAScore > previousScore ? 'YES' : 'NO'}`);
+        console.log(`🔍 Debug - Target score: ${config.refinement.targetScore}`);
+        console.log(`🔍 Debug - Stop condition: ${config.refinement.stopCondition}`);
+        console.log(`🔍 Debug - Issues resolved this iteration: ${iterationIssues.length}`);
+        console.log(`🔍 Debug - All issues before: ${allIssues.length}, after: ${iterationQA.issues.length}`);
 
         // Log iteration
         if (this.config.enableLogging && sessionId) {
@@ -164,22 +177,43 @@ export class RefinementPipeline {
 
         iterations = iteration;
 
-        // Check if we've reached the target score
-        if (currentQAScore >= this.config.targetQAScore) {
-          console.log('✅ Target QA score reached!');
-          break;
-        }
-
-        // Check if we're not improving
-        if (currentQAScore <= previousScore) {
-          console.log('⚠️  No improvement detected - stopping refinement');
-          break;
+        // Check stopping conditions based on configuration
+        if (config.refinement.stopCondition === 'score') {
+          // Score-based stopping: Stop when target score is reached
+          if (currentQAScore >= config.refinement.targetScore) {
+            console.log(`✅ Target QA score reached (${config.refinement.targetScore}/5.0)!`);
+            break;
+          }
+          
+          // Stop if no improvement detected
+          if (currentQAScore <= previousScore) {
+            console.log('⚠️  No improvement detected - stopping refinement');
+            break;
+          }
+        } else {
+          // Issue-based stopping: Stop when all issues are resolved
+          if (iterationQA.issues.length === 0) {
+            console.log('✅ All issues resolved - stopping refinement');
+            break;
+          }
+          
+          // For issue-based, also stop if no improvement in issue count
+          const previousIssueCount = allIssues.length - iterationIssues.length;
+          const currentIssueCount = iterationQA.issues.length;
+          if (currentIssueCount >= previousIssueCount && currentQAScore <= previousScore) {
+            console.log('⚠️  No improvement in issues or score - stopping refinement');
+            break;
+          }
         }
       }
 
-      // Generate final PDF layout after refinement is complete
-      console.log('\n📄 Generating Final PDF Layout...');
-      currentMonster = await this.generateFinalPDF(currentMonster);
+      // Generate final PDF layout after refinement is complete (if enabled)
+      if (config.generation.generatePDF) {
+        console.log('\n📄 Generating Final PDF Layout...');
+        currentMonster = await this.generateFinalPDF(currentMonster);
+      } else {
+        console.log('\n📄 Skipping PDF generation (disabled)');
+      }
 
       // Save final monster
       if (this.config.enablePersistence) {
@@ -218,26 +252,34 @@ export class RefinementPipeline {
             initial_qa_score: initialQA.overallScore,
             final_qa_score: currentQAScore,
             refinement_iterations: iterations,
-            refinement_success: currentQAScore >= this.config.targetQAScore
+            refinement_success: config.refinement.useScoringSystem 
+              ? currentQAScore >= config.refinement.scoringSystemTarget
+              : allIssues.length === 0
           });
         }
       }
+
+      // Determine success based on configuration
+      const success = config.refinement.useScoringSystem 
+        ? currentQAScore >= config.refinement.scoringSystemTarget
+        : allIssues.length === 0;
 
       // Complete session
       if (this.config.enableLogging && sessionId) {
         await this.logger.completeSession({
           final_qa_score: currentQAScore,
           total_iterations: iterations,
-          success_criteria_met: currentQAScore >= this.config.targetQAScore,
-          final_status: currentQAScore >= this.config.targetQAScore ? 'SUCCESS' : 'MAX_ITERATIONS_REACHED'
+          success_criteria_met: success,
+          final_status: success ? 'SUCCESS' : 'MAX_ITERATIONS_REACHED'
         });
       }
-
-      const success = currentQAScore >= this.config.targetQAScore;
+        
       console.log(`\n🎯 Refinement Complete!`);
       console.log(`Final QA Score: ${currentQAScore}/5.0`);
+      console.log(`Remaining Issues: ${allIssues.length}`);
       console.log(`Success: ${success ? '✅' : '❌'}`);
       console.log(`Iterations: ${iterations}`);
+      console.log(`Mode: ${config.refinement.useScoringSystem ? 'Score-based' : 'Issue-based'}`);
 
       return this.createResult(currentMonster, currentQAScore, iterations, success, sessionId, monsterId, improvements, allIssues);
 
@@ -246,12 +288,17 @@ export class RefinementPipeline {
       
       // Log failure
       if (this.config.enableLogging && sessionId) {
-        await this.logger.completeSession({
-          final_qa_score: currentQAScore,
-          total_iterations: iterations,
-          success_criteria_met: false,
-          final_status: 'ERROR'
-        });
+        try {
+          await this.logger.completeSession({
+            final_qa_score: currentQAScore,
+            total_iterations: iterations,
+            success_criteria_met: false,
+            final_status: 'MAX_ITERATIONS_REACHED' // Use a valid status instead of ERROR
+          });
+        } catch (logError) {
+          console.error('❌ Failed to log session completion:', logError);
+          // Don't re-throw this error since the main error is more important
+        }
       }
 
       throw error;
@@ -284,12 +331,17 @@ export class RefinementPipeline {
       description: loreResult.lore
     });
     
-    console.log('🎨 Generating art prompt...');
-    const artResult = await this.artPromptAgent.execute({
-      name: loreResult.name,
-      region: loreResult.region,
-      lore: loreResult.lore
-    });
+    let artResult = { artPrompt: {} };
+    if (config.generation.enableArtGeneration) {
+      console.log('🎨 Generating art prompt...');
+      artResult = await this.artPromptAgent.execute({
+        name: loreResult.name,
+        region: loreResult.region,
+        lore: loreResult.lore
+      });
+    } else {
+      console.log('🎨 Skipping art prompt generation (disabled)');
+    }
 
     // PDF generation is skipped during refinement iterations to save resources
     // and avoid generating PDFs for intermediate versions that will be refined
@@ -428,6 +480,40 @@ export class RefinementPipeline {
             improvements.push(`Improved overall quality`);
             break;
 
+          case 'Name-Lore Alignment':
+            // Re-run LoreAgent to fix name-lore consistency
+            const alignmentResult = await this.loreAgent.execute({
+              region: monster.region,
+              qaFeedback: [issue]
+            });
+            monster.name = alignmentResult.name;
+            monster.lore = alignmentResult.lore;
+            improvements.push(`Fixed name-lore alignment`);
+            break;
+
+          case 'Completeness':
+            // Handle completeness issues - could involve multiple agents
+            if (issue.issue.toLowerCase().includes('art') || issue.issue.toLowerCase().includes('prompt')) {
+              // Generate art prompt if missing
+              const artResult = await this.artPromptAgent.execute({
+                name: monster.name,
+                region: monster.region,
+                lore: monster.lore,
+                qaFeedback: [issue]
+              });
+              monster.art = artResult.artPrompt;
+              improvements.push(`Added missing art prompt`);
+            } else {
+              // Default to lore improvement for completeness
+              const completenessResult = await this.loreAgent.execute({
+                region: monster.region,
+                qaFeedback: [issue]
+              });
+              monster.lore = completenessResult.lore;
+              improvements.push(`Improved completeness`);
+            }
+            break;
+
           case 'Balance':
             // Re-run StatBlockAgent with balance feedback
             const balanceResult = await this.statBlockAgent.execute({
@@ -477,11 +563,13 @@ export class RefinementPipeline {
       case 'Cultural':
       case 'Consistency':
       case 'Quality':
+      case 'Name-Lore Alignment':
         return 'LoreAgent';
       case 'Stat Block Balance':
       case 'Balance':
         return 'StatBlockAgent';
       case 'Art Style':
+      case 'Completeness':
         return 'ArtPromptAgent';
       default:
         return 'UnknownAgent';

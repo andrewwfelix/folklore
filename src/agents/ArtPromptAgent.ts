@@ -3,6 +3,7 @@ import { AgentType } from '@/types';
 import { buildArtPrompt } from '@/prompts';
 import OpenAI from 'openai';
 import { QAIssue } from '@/types/qa-feedback';
+import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
 export interface ArtPromptAgentInput {
   name: string;
@@ -86,13 +87,11 @@ export class ArtPromptAgent extends BaseAgent {
     }
 
     try {
-      // Clean up the response to extract JSON
-      const jsonMatch = artPromptText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON found in response');
+      // Extract JSON using the new utility function
+      const artPrompt = extractJsonWithFallback(artPromptText);
+      if (!artPrompt) {
+        throw new Error('Failed to extract valid JSON from art prompt response');
       }
-
-      const artPrompt = JSON.parse(jsonMatch[0]);
       return artPrompt;
     } catch (parseError) {
       this.log('Failed to parse art prompt JSON, retrying...');

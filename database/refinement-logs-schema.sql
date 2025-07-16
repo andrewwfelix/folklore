@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS folklore_refinement_sessions (
     total_iterations INTEGER DEFAULT 0,
     max_iterations INTEGER DEFAULT 3,
     success_criteria_met BOOLEAN DEFAULT FALSE,
-    final_status TEXT CHECK (final_status IN ('SUCCESS', 'MAX_ITERATIONS_REACHED', 'CONSECUTIVE_FAILURES', 'UNKNOWN')),
+    final_status TEXT CHECK (final_status IN ('SUCCESS', 'MAX_ITERATIONS_REACHED', 'CONSECUTIVE_FAILURES', 'UNKNOWN', 'ERROR')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     completed_at TIMESTAMP WITH TIME ZONE,
     total_duration_ms INTEGER

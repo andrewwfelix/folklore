@@ -3,6 +3,7 @@ import { AgentType, Monster, MonsterGenerationInput } from '@/types';
 import { buildLorePrompt } from '@/prompts';
 import OpenAI from 'openai';
 import { QAIssue } from '@/types/qa-feedback';
+import { config } from '@/config';
 
 export interface LoreAgentInput extends MonsterGenerationInput {
   /**
@@ -52,6 +53,12 @@ export class LoreAgent extends BaseAgent {
    * Generates lore, incorporating QA feedback as explicit instructions if provided.
    */
   private async generateLore(input: LoreAgentInput): Promise<string> {
+    // Check if mock mode is enabled
+    if (config.development.mockLLM) {
+      this.log('Using mock mode - returning test lore');
+      return this.getMockLore(input);
+    }
+
     // Build the base prompt
     let prompt = buildLorePrompt({
       region: input.region,
@@ -68,7 +75,7 @@ export class LoreAgent extends BaseAgent {
     }
     
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4',
+      model: config.openai.model,
       messages: [
         {
           role: 'system',
@@ -89,6 +96,22 @@ export class LoreAgent extends BaseAgent {
     }
 
     return lore.trim();
+  }
+
+  /**
+   * Returns mock lore for testing
+   */
+  private getMockLore(input: LoreAgentInput): string {
+    const mockLore = {
+      'Japan': 'The Nue is a chimera-like creature from Japanese folklore, said to have the head of a monkey, the body of a tanuki, the legs of a tiger, and a snake for a tail. It is known for its ability to transform into a black cloud and bring misfortune to those who encounter it.',
+      'Norse': 'The Hrímþursar Frost Giant is a massive being of ice and snow from Norse mythology. Born from the primordial ice of Niflheim, these giants embody the harshness of winter and are said to be able to freeze the very air with their breath.',
+      'Greece': 'The Chimera is a fearsome creature from Greek mythology with the head of a lion, the body of a goat, and the tail of a serpent. It breathes fire and is said to be invincible, making it one of the most dangerous monsters in Greek lore.',
+      'Celtic': 'The Banshee is a female spirit from Irish folklore who wails to foretell death. She appears as a beautiful woman with long flowing hair, dressed in white or gray, and her mournful cry is said to be heard by those who are about to die.',
+      'Slavic': 'The Baba Yaga is a supernatural being from Slavic folklore who lives in a hut that stands on chicken legs. She is both feared and respected, known for her wisdom and her ability to help or hinder those who seek her out.'
+    };
+
+    const region = input.region || 'Japan';
+    return mockLore[region as keyof typeof mockLore] || mockLore['Japan'];
   }
 
   /**

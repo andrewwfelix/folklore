@@ -1,4 +1,5 @@
 import { PromptTemplate } from './index';
+import { JSON_OUTPUT_DIRECTIVE } from './json-directive';
 
 export const CITATION_PROMPT: PromptTemplate = {
   name: 'Citation Generation',
@@ -24,7 +25,7 @@ Requirements:
 - Avoid generic mythology websites
 - Focus on sources that describe the original cultural context
 
-IMPORTANT: Return ONLY valid JSON without any markdown formatting, additional text, or explanations. Ensure all strings are properly escaped and the JSON is complete and well-formed.
+${JSON_OUTPUT_DIRECTIVE}
 
 Return the citations in valid JSON format:
 [

@@ -17,10 +17,11 @@ async function generateWithRefinement() {
     // Display current settings
     console.log(`\n📊 Generation Settings:`);
     console.log(`   • Count: ${config.generation.count} monsters`);
-    console.log(`   • Max Iterations: 3`);
-    console.log(`   • Target QA Score: 4.0`);
+    console.log(`   • Max Iterations: ${config.refinement.maxIterations}`);
+    console.log(`   • Target QA Score: ${config.refinement.scoringSystemTarget}`);
     console.log(`   • Image Generation: ${config.generation.enableImageGeneration ? '✅' : '❌'}`);
-    console.log(`   • PDF Generation: ${config.generation.enablePDFGeneration ? '✅' : '❌'}`);
+    console.log(`   • PDF Generation: ${config.generation.generatePDF ? '✅' : '❌'}`);
+    console.log(`   • Art Generation: ${config.generation.enableArtGeneration ? '✅' : '❌'}`);
     console.log(`   • QA Review: ${config.quality.enableQAReview ? '✅' : '❌'}`);
     
     console.log(`\n🎨 Image Settings:`);
@@ -33,21 +34,25 @@ async function generateWithRefinement() {
     console.log(`\n💰 Estimated Cost: $${estimatedCost.toFixed(4)}`);
     
     // Development mode warnings
-    if (config.development.debug) {
-      console.log(`\n🔧 Development Mode:`);
-      if (config.development.mockLLM) {
-        console.log(`   • Mock LLM: ✅ (using test responses)`);
-      }
-      if (config.development.mockImageGeneration) {
-        console.log(`   • Mock Image Generation: ✅ (skipping actual generation)`);
-      }
+    console.log(`\n🔧 Development Mode:`);
+    console.log(`   • DEBUG: config.development.mockLLM = ${config.development.mockLLM}`);
+    console.log(`   • DEBUG: process.env.MOCK_LLM = ${process.env['MOCK_LLM']}`);
+    if (config.development.mockLLM) {
+      console.log(`   • Mock LLM: ✅ (using test responses)`);
+    } else {
+      console.log(`   • Mock LLM: ❌ (using real API)`);
+    }
+    if (config.development.mockImageGeneration) {
+      console.log(`   • Mock Image Generation: ✅ (skipping actual generation)`);
+    } else {
+      console.log(`   • Mock Image Generation: ❌ (using real API)`);
     }
     
     console.log(`\n🚀 Starting generation with refinement of ${config.generation.count} monster(s)!`);
     
     // Create refinement pipeline
     const pipeline = new RefinementPipeline({
-      maxIterations: 3,
+      maxIterations: config.refinement.maxIterations,
       targetQAScore: 4.8, // Increased to force refinement iterations
       enableLogging: true,
       enablePersistence: true,
