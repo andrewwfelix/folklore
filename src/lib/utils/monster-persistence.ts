@@ -1,5 +1,5 @@
 import { folkloreSupabase } from '../supabase/folklore-client';
-import { supabase } from '@/lib/supabase/client';
+import { generateHomebreweryMarkup } from './homebrewery-export';
 
 export interface MonsterData {
   id?: string;
@@ -61,6 +61,34 @@ export class MonsterPersistence {
       // Save art prompt to separate table if provided
       if (monster.art) {
         await this.saveArtPrompt(monsterId, monster.art);
+      }
+      
+      // Generate and save Homebrewery markup if monster_json is available
+      if (monster.monsterJson) {
+        try {
+          const markup = generateHomebreweryMarkup(monster.monsterJson, {
+            includeLore: true,
+            includeCitations: false,
+            includeArtPrompt: false,
+            frameType: 'monster,frame'
+          });
+          // Update the monster record with the generated markup
+          const { error: updateError } = await folkloreSupabase
+            .from('folklore_monsters')
+            .update({ 
+              monster_markup_homebrew: markup,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', monsterId);
+
+          if (updateError) {
+            console.log(`⚠️  Failed to save Homebrewery markup: ${updateError.message}`);
+          } else {
+            console.log(`🏠 Generated and saved Homebrewery markup for monster: ${monsterId} (${markup.length} chars)`);
+          }
+        } catch (error) {
+          console.log(`⚠️  Error generating Homebrewery markup for monster: ${monsterId}: ${(error as Error).message}`);
+        }
       }
       
       return monsterId;
@@ -140,7 +168,7 @@ export class MonsterPersistence {
       if (updates.refinement_success !== undefined) updateData.refinement_success = updates.refinement_success;
       if (updates.console_log !== undefined) updateData.console_log = updates.console_log; // Update logs
 
-      const { error } = await supabase
+      const { error } = await folkloreSupabase
         .from('folklore_monsters')
         .update(updateData)
         .eq('id', monsterId);
@@ -159,7 +187,7 @@ export class MonsterPersistence {
    */
   async getMonster(monsterId: string): Promise<MonsterData | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await folkloreSupabase
         .from('folklore_monsters')
         .select('*')
         .eq('id', monsterId)
@@ -168,13 +196,13 @@ export class MonsterPersistence {
       if (error) throw error;
       
       // Fetch citations from separate table
-      const { data: citationsData } = await supabase
+      const { data: citationsData } = await folkloreSupabase
         .from('folklore_citations')
         .select('*')
         .eq('monster_id', monsterId);
 
       // Fetch art prompt from separate table
-      const { data: artData } = await supabase
+      const { data: artData } = await folkloreSupabase
         .from('folklore_art_prompts')
         .select('*')
         .eq('monster_id', monsterId)
@@ -211,7 +239,7 @@ export class MonsterPersistence {
    */
   async getAllMonsters(): Promise<MonsterData[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await folkloreSupabase
         .from('folklore_monsters')
         .select('*')
         .order('created_at', { ascending: false });
@@ -222,13 +250,13 @@ export class MonsterPersistence {
       const monstersWithDetails = await Promise.all(
         data.map(async (monster: any) => {
           // Fetch citations for this monster
-          const { data: citationsData } = await supabase
+          const { data: citationsData } = await folkloreSupabase
             .from('folklore_citations')
             .select('*')
             .eq('monster_id', monster.id);
 
           // Fetch art prompt for this monster
-          const { data: artData } = await supabase
+          const { data: artData } = await folkloreSupabase
             .from('folklore_art_prompts')
             .select('*')
             .eq('monster_id', monster.id)
@@ -268,7 +296,7 @@ export class MonsterPersistence {
    */
   async getRefinedMonsters(): Promise<MonsterData[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await folkloreSupabase
         .from('folklore_monsters')
         .select('*')
         .not('refinement_session_id', 'is', null)
@@ -280,13 +308,13 @@ export class MonsterPersistence {
       const monstersWithDetails = await Promise.all(
         data.map(async (monster: any) => {
           // Fetch citations for this monster
-          const { data: citationsData } = await supabase
+          const { data: citationsData } = await folkloreSupabase
             .from('folklore_citations')
             .select('*')
             .eq('monster_id', monster.id);
 
           // Fetch art prompt for this monster
-          const { data: artData } = await supabase
+          const { data: artData } = await folkloreSupabase
             .from('folklore_art_prompts')
             .select('*')
             .eq('monster_id', monster.id)
@@ -326,7 +354,7 @@ export class MonsterPersistence {
    */
   async deleteMonster(monsterId: string): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await folkloreSupabase
         .from('folklore_monsters')
         .delete()
         .eq('id', monsterId);

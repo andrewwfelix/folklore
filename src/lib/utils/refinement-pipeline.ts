@@ -253,7 +253,7 @@ export class RefinementPipeline {
           final_qa_score: 0,
           total_iterations: iterations,
           success_criteria_met: completed,
-          final_status: 'COMPLETED'
+          final_status: 'SUCCESS'
         });
       }
         
@@ -323,7 +323,7 @@ export class RefinementPipeline {
     });
     
     let artResult = { artPrompt: {} };
-    if (config.generation.enableArtGeneration) {
+    if (config.generation.generateArt) {
       console.log('🎨 Generating art prompt...');
       artResult = await this.artPromptAgent.execute({
         name: loreResult.name,

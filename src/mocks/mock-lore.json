@@ -1,0 +1,21 @@
+{
+  "Creature": {
+    "Name": "Baba Yaga",
+    "Description": {
+      "PhysicalAppearance": "Baba Yaga is an ancient crone with iron teeth, a long hooked nose, and wild, tangled hair. She travels in a giant mortar, wielding a pestle, and is often surrounded by a supernatural aura.",
+      "Behavior": "She is unpredictable, sometimes helping and sometimes hindering those who seek her out. She is known for her cunning, magical prowess, and her role as a guardian of the boundary between the living and the dead."
+    },
+    "CulturalSignificance": {
+      "Symbolism": "Baba Yaga represents the duality of nature—both nurturing and destructive. She is a symbol of wisdom, transformation, and the wild, untamable aspects of the world.",
+      "Festivals": "Stories of Baba Yaga are told during Slavic festivals and celebrations, especially those marking seasonal changes."
+    },
+    "NotableAbilities": {
+      "Powers": "Baba Yaga can control the weather, cast powerful curses, and travel between worlds. She is a master of shapeshifting and illusion.",
+      "Wisdom": "She possesses ancient knowledge and often tests the worthiness of those who seek her aid."
+    },
+    "HistoricalContext": {
+      "AncientBeliefs": "Baba Yaga has roots in pre-Christian Slavic mythology, where she was revered and feared as a forest spirit and wise woman.",
+      "ModernUse": "Today, Baba Yaga appears in literature, film, and art as a complex figure embodying both danger and guidance."
+    }
+  }
+} 

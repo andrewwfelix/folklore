@@ -93,65 +93,72 @@ export class StatBlockAgent extends BaseAgent {
    * Returns mock stat block for testing
    */
   private getMockStatBlock(_input: any): any {
-    return {
-      name: "Nue",
-      size: "Medium",
-      type: "monstrosity",
-      alignment: "neutral evil",
-      armorClass: 15,
-      hitPoints: 45,
-      hitDice: "6d8 + 18",
-      speed: {
-        walk: 30,
-        fly: 60
-      },
-      abilityScores: {
-        strength: 16,
-        dexterity: 14,
-        constitution: 16,
-        intelligence: 10,
-        wisdom: 12,
-        charisma: 8
-      },
-      savingThrows: {
-        strength: "+6",
-        constitution: "+6"
-      },
-      skills: {
-        "Stealth": "+5",
-        "Perception": "+4"
-      },
-      damageResistances: ["cold", "necrotic"],
-      damageImmunities: [],
-      conditionImmunities: [],
-      senses: {
-        darkvision: 60,
-        passivePerception: 14
-      },
-      languages: ["Common", "Abyssal"],
-      challengeRating: 3,
-      experiencePoints: 700,
-      abilities: [
-        {
-          name: "Shadow Form",
-          description: "The nue can transform into a black cloud as a bonus action. While in this form, it has resistance to all damage and can move through spaces as narrow as 1 inch wide."
-        }
-      ],
-      actions: [
-        {
-          name: "Multiattack",
-          description: "The nue makes two attacks: one with its bite and one with its claws."
+    try {
+      const mockData = require('../mocks/mock-statblock.json');
+      return mockData;
+    } catch (error) {
+      this.log('Failed to load mock statblock, using fallback');
+      // Fallback to inline data if JSON file fails to load
+      return {
+        name: "Nue",
+        size: "Medium",
+        type: "monstrosity",
+        alignment: "neutral evil",
+        armorClass: 15,
+        hitPoints: 45,
+        hitDice: "6d8 + 18",
+        speed: {
+          walk: 30,
+          fly: 60
         },
-        {
-          name: "Bite",
-          description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) piercing damage plus 7 (2d6) necrotic damage."
+        abilityScores: {
+          strength: 16,
+          dexterity: 14,
+          constitution: 16,
+          intelligence: 10,
+          wisdom: 12,
+          charisma: 8
         },
-        {
-          name: "Claws",
-          description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 7 (1d6 + 4) slashing damage."
-        }
-      ],
-      legendaryActions: []
-    };
+        savingThrows: {
+          strength: "+6",
+          constitution: "+6"
+        },
+        skills: {
+          "Stealth": "+5",
+          "Perception": "+4"
+        },
+        damageResistances: ["cold", "necrotic"],
+        damageImmunities: [],
+        conditionImmunities: [],
+        senses: {
+          darkvision: 60,
+          passivePerception: 14
+        },
+        languages: ["Common", "Abyssal"],
+        challengeRating: 3,
+        experiencePoints: 700,
+        abilities: [
+          {
+            name: "Shadow Form",
+            description: "The nue can transform into a black cloud as a bonus action. While in this form, it has resistance to all damage and can move through spaces as narrow as 1 inch wide."
+          }
+        ],
+        actions: [
+          {
+            name: "Multiattack",
+            description: "The nue makes two attacks: one with its bite and one with its claws."
+          },
+          {
+            name: "Bite",
+            description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) piercing damage plus 7 (2d6) necrotic damage."
+          },
+          {
+            name: "Claws",
+            description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 7 (1d6 + 4) slashing damage."
+          }
+        ],
+        legendaryActions: []
+      };
+    }
   }
 } 

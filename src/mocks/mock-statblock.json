@@ -1,0 +1,47 @@
+{
+  "Creature": {
+    "Name": "Baba Yaga",
+    "Size": "Medium",
+    "Type": "Fey",
+    "Alignment": "Chaotic Neutral",
+    "AC": 17,
+    "HP": 180,
+    "Speed": { "Walk": 30, "Fly": 60 },
+    "AbilityScores": {
+      "STR": 12,
+      "DEX": 16,
+      "CON": 18,
+      "INT": 20,
+      "WIS": 18,
+      "CHA": 19
+    },
+    "SavingThrows": {
+      "INT": 9,
+      "WIS": 8,
+      "CHA": 9
+    },
+    "Skills": {
+      "Arcana": 11,
+      "Deception": 10,
+      "Perception": 8
+    },
+    "DamageResistances": "Bludgeoning, Piercing, and Slashing from Nonmagical Attacks",
+    "ConditionImmunities": "Charmed, Frightened",
+    "Senses": { "Darkvision": 60, "PassivePerception": 18 },
+    "Languages": "Common, Sylvan, Russian",
+    "ChallengeRating": 18,
+    "Traits": [
+      { "name": "Legendary Resistance", "description": "If Baba Yaga fails a saving throw, she can choose to succeed instead." },
+      { "name": "Magic Resistance", "description": "Baba Yaga has advantage on saving throws against spells and other magical effects." }
+    ],
+    "Actions": [
+      { "name": "Multiattack", "description": "Baba Yaga makes three attacks: one with her staff and two with her claws." },
+      { "name": "Staff", "description": "Melee Weapon Attack: +10 to hit, reach 5 ft., one target. Hit: 15 (2d8 + 6) bludgeoning damage." },
+      { "name": "Claw", "description": "Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage." }
+    ],
+    "LegendaryActions": [
+      { "name": "Frightening Gaze", "description": "Baba Yaga fixes her gaze on one creature she can see within 10 feet. The target must succeed on a DC 17 Wisdom saving throw or become frightened for 1 minute." },
+      { "name": "Teleport", "description": "Baba Yaga magically teleports, along with any equipment she is wearing or carrying, up to 120 feet to an unoccupied space she can see." }
+    ]
+  }
+} 

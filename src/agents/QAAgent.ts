@@ -129,40 +129,55 @@ export class QAAgent extends BaseAgent {
    * Returns mock QA review for testing
    */
   private getMockQAReview(_input: any): any {
-    // For issue-based refinement, progressively resolve issues
-    const allIssues = [
-      {
-        severity: 'Major',
-        category: 'Name Distinctiveness',
-        issue: "The monster's name is too generic and doesn't reflect its unique characteristics.",
-        suggestion: "Create a more distinctive name that captures the monster's unique features and cultural background."
-      },
-      {
-        severity: 'Minor',
-        category: 'Cultural Authenticity',
-        issue: "The lore could better reflect the cultural traditions and beliefs of the region.",
-        suggestion: "Enhance the cultural elements to better align with the region's folklore and mythology."
-      },
-      {
-        severity: 'Minor',
-        category: 'Stat Block Balance',
-        issue: "The challenge rating seems slightly low for a creature with such abilities.",
-        suggestion: "Consider adjusting the challenge rating to better match the creature's capabilities."
-      }
-    ];
-    
-    // Progressively resolve issues: 3 -> 2 -> 1 -> 0
-    const remainingIssues = allIssues.slice(0, Math.max(0, 3 - this.callCount));
-    
-    return {
-      status: remainingIssues.length === 0 ? 'pass' : 'needs_revision',
-      issues: remainingIssues,
-      summary: `Mock QA review #${this.callCount} - Issues remaining: ${remainingIssues.length}`,
-      recommendations: [
-        'Create a more distinctive name',
-        'Enhance cultural authenticity',
-        'Adjust challenge rating'
-      ]
-    };
+    try {
+      const mockData = require('../mocks/mock-qa-review.json');
+      // For issue-based refinement, progressively resolve issues
+      const allIssues = mockData.issues || [];
+      const remainingIssues = allIssues.slice(0, Math.max(0, 3 - this.callCount));
+      
+      return {
+        status: remainingIssues.length === 0 ? 'pass' : 'needs_revision',
+        issues: remainingIssues,
+        summary: `Mock QA review #${this.callCount} - Issues remaining: ${remainingIssues.length}`,
+        recommendations: mockData.recommendations || []
+      };
+    } catch (error) {
+      this.log('Failed to load mock QA review, using fallback');
+      // Fallback to inline data if JSON file fails to load
+      const allIssues = [
+        {
+          severity: 'Major',
+          category: 'Name Distinctiveness',
+          issue: "The monster's name is too generic and doesn't reflect its unique characteristics.",
+          suggestion: "Create a more distinctive name that captures the monster's unique features and cultural background."
+        },
+        {
+          severity: 'Minor',
+          category: 'Cultural Authenticity',
+          issue: "The lore could better reflect the cultural traditions and beliefs of the region.",
+          suggestion: "Enhance the cultural elements to better align with the region's folklore and mythology."
+        },
+        {
+          severity: 'Minor',
+          category: 'Stat Block Balance',
+          issue: "The challenge rating seems slightly low for a creature with such abilities.",
+          suggestion: "Consider adjusting the challenge rating to better match the creature's capabilities."
+        }
+      ];
+      
+      // Progressively resolve issues: 3 -> 2 -> 1 -> 0
+      const remainingIssues = allIssues.slice(0, Math.max(0, 3 - this.callCount));
+      
+      return {
+        status: remainingIssues.length === 0 ? 'pass' : 'needs_revision',
+        issues: remainingIssues,
+        summary: `Mock QA review #${this.callCount} - Issues remaining: ${remainingIssues.length}`,
+        recommendations: [
+          'Create a more distinctive name',
+          'Enhance cultural authenticity',
+          'Adjust challenge rating'
+        ]
+      };
+    }
   }
 } 

@@ -1,0 +1,23 @@
+{
+  "status": "needs_revision",
+  "issues": [
+    {
+      "severity": "Major",
+      "category": "Name Distinctiveness",
+      "issue": "The monster's name is too generic and doesn't reflect its unique characteristics.",
+      "suggestion": "Create a more distinctive name that captures the monster's unique features and cultural background."
+    },
+    {
+      "severity": "Minor",
+      "category": "Cultural Authenticity",
+      "issue": "The lore could better reflect the cultural traditions and beliefs of the region.",
+      "suggestion": "Enhance the cultural elements to better align with the region's folklore and mythology."
+    }
+  ],
+  "summary": "Mock QA review #1 - Issues remaining: 2",
+  "recommendations": [
+    "Create a more distinctive name",
+    "Enhance cultural authenticity",
+    "Adjust challenge rating"
+  ]
+} 

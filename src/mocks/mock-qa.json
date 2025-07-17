@@ -1,0 +1,12 @@
+{
+  "feedback": "The stat block and lore for Baba Yaga are well-aligned and thematically consistent. The abilities and actions reflect her mythological roots, and the formatting is clear and readable.",
+  "issues": [
+    {
+      "severity": "Minor",
+      "category": "Balance",
+      "issue": "Baba Yaga's saving throws are slightly high for her CR.",
+      "suggestion": "Consider lowering one or more saving throw bonuses by 1-2 points."
+    }
+  ],
+  "status": "approved"
+} 

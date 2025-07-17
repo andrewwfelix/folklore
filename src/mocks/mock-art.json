@@ -1,0 +1,22 @@
+{
+  "Creature": {
+    "Name": "Baba Yaga",
+    "Description": {
+      "PhysicalAppearance": "An ancient crone with iron teeth, wild hair, and a supernatural aura, riding in a giant mortar and wielding a pestle.",
+      "Behavior": "Mysterious and unpredictable, sometimes helpful, sometimes dangerous."
+    },
+    "CulturalSignificance": {
+      "Symbolism": "Represents wisdom, transformation, and the wild aspects of nature.",
+      "Festivals": "Featured in Slavic folklore and seasonal celebrations."
+    },
+    "NotableAbilities": {
+      "Powers": "Controls weather, casts curses, shapeshifts, and travels between worlds.",
+      "Wisdom": "Tests the worthiness of those who seek her aid."
+    },
+    "HistoricalContext": {
+      "AncientBeliefs": "A revered and feared forest spirit in pre-Christian Slavic mythology.",
+      "ModernUse": "Appears in modern literature, film, and art as a complex figure."
+    }
+  },
+  "prompt": "A mystical, ancient crone with iron teeth, wild hair, and a supernatural aura, riding in a giant mortar through a dark, enchanted forest."
+} 

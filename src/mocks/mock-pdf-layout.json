@@ -1,0 +1,30 @@
+{
+  "title": "Nue",
+  "sections": [
+    {
+      "name": "Lore",
+      "content": "The Nue is a chimera-like creature from Japanese folklore, said to have the head of a monkey, the body of a tanuki, the legs of a tiger, and a snake for a tail. It is known for its ability to transform into a black cloud and bring misfortune to those who encounter it.",
+      "styling": {}
+    },
+    {
+      "name": "Stats",
+      "content": "{\"name\":\"Nue\",\"size\":\"Medium\",\"type\":\"monstrosity\",\"alignment\":\"neutral evil\",\"armorClass\":15,\"hitPoints\":45,\"hitDice\":\"6d8 + 18\",\"speed\":{\"walk\":30,\"fly\":60},\"abilityScores\":{\"strength\":16,\"dexterity\":14,\"constitution\":16,\"intelligence\":10,\"wisdom\":12,\"charisma\":8},\"savingThrows\":{\"strength\":\"+6\",\"constitution\":\"+6\"},\"skills\":{\"Stealth\":\"+5\",\"Perception\":\"+4\"},\"damageResistances\":[\"cold\",\"necrotic\"],\"damageImmunities\":[],\"conditionImmunities\":[],\"senses\":{\"darkvision\":60,\"passivePerception\":14},\"languages\":[\"Common\",\"Abyssal\"],\"challengeRating\":3,\"experiencePoints\":700,\"abilities\":[{\"name\":\"Shadow Form\",\"description\":\"The nue can transform into a black cloud as a bonus action. While in this form, it has resistance to all damage and can move through spaces as narrow as 1 inch wide.\"}],\"actions\":[{\"name\":\"Multiattack\",\"description\":\"The nue makes two attacks: one with its bite and one with its claws.\"},{\"name\":\"Bite\",\"description\":\"Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) piercing damage plus 7 (2d6) necrotic damage.\"},{\"name\":\"Claws\",\"description\":\"Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 7 (1d6 + 4) slashing damage.\"}],\"legendaryActions\":[]} ",
+      "styling": {}
+    },
+    {
+      "name": "Citations",
+      "content": "[{'title':'Japanese Yokai: The Complete Guide','author':'Mizuki, Shigeru','year':2018,'publisher':'Kodansha International','url':'https://www.kodansha.co.jp/english/books/isbn/9781568365734/','type':'book','relevance':'Comprehensive guide to Japanese supernatural creatures including the nue'},{'title':'The Book of Yokai: Mysterious Creatures of Japanese Folklore','author':'Foster, Michael Dylan','year':2015,'publisher':'University of California Press','url':'https://www.ucpress.edu/book/9780520271029/the-book-of-yokai','type':'book','relevance':'Academic study of Japanese folklore and supernatural beings'},{'title':'Nue: The Japanese Chimera','author':'Yanagita, Kunio','year':1930,'publisher':'Japanese Folklore Society','url':'https://www.japanesefolklore.org/archives/nue-study','type':'journal_article','relevance':'Original research on the nue creature and its cultural significance'}]",
+      "styling": {}
+    },
+    {
+      "name": "Art",
+      "content": "{\"theme\":\"Japanese Yokai\",\"artistic_style\":\"Ukiyo-e\",\"mood\":\"Mysterious and eerie\",\"key_visual_elements\":[\"Traditional Japanese architecture\",\"Cherry blossoms\",\"Mystical creatures\",\"Dark atmospheric lighting\"],\"description\":\"A supernatural creature from Japanese folklore, depicted in traditional ukiyo-e style with rich cultural details and mystical atmosphere.\"}",
+      "styling": {}
+    }
+  ],
+  "overallStyling": {
+    "theme": "Japanese Fantasy",
+    "margins": "1 inch",
+    "pageSize": "A4"
+  }
+} 

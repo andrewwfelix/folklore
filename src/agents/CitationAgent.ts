@@ -109,34 +109,41 @@ export class CitationAgent extends BaseAgent {
    * Returns mock citations for testing
    */
   private getMockCitations(_input: any): any[] {
-    return [
-      {
-        title: "Japanese Yokai: The Complete Guide",
-        author: "Mizuki, Shigeru",
-        year: 2018,
-        publisher: "Kodansha International",
-        url: "https://www.kodansha.co.jp/english/books/isbn/9781568365734/",
-        type: "book",
-        relevance: "Comprehensive guide to Japanese supernatural creatures including the nue"
-      },
-      {
-        title: "The Book of Yokai: Mysterious Creatures of Japanese Folklore",
-        author: "Foster, Michael Dylan",
-        year: 2015,
-        publisher: "University of California Press",
-        url: "https://www.ucpress.edu/book/9780520271029/the-book-of-yokai",
-        type: "book",
-        relevance: "Academic study of Japanese folklore and supernatural beings"
-      },
-      {
-        title: "Nue: The Japanese Chimera",
-        author: "Yanagita, Kunio",
-        year: 1930,
-        publisher: "Japanese Folklore Society",
-        url: "https://www.japanesefolklore.org/archives/nue-study",
-        type: "journal_article",
-        relevance: "Original research on the nue creature and its cultural significance"
-      }
-    ];
+    try {
+      const mockData = require('../mocks/mock-citations.json');
+      return mockData;
+    } catch (error) {
+      this.log('Failed to load mock citations, using fallback');
+      // Fallback to inline data if JSON file fails to load
+      return [
+        {
+          title: "Japanese Yokai: The Complete Guide",
+          author: "Mizuki, Shigeru",
+          year: 2018,
+          publisher: "Kodansha International",
+          url: "https://www.kodansha.co.jp/english/books/isbn/9781568365734/",
+          type: "book",
+          relevance: "Comprehensive guide to Japanese supernatural creatures including the nue"
+        },
+        {
+          title: "The Book of Yokai: Mysterious Creatures of Japanese Folklore",
+          author: "Foster, Michael Dylan",
+          year: 2015,
+          publisher: "University of California Press",
+          url: "https://www.ucpress.edu/book/9780520271029/the-book-of-yokai",
+          type: "book",
+          relevance: "Academic study of Japanese folklore and supernatural beings"
+        },
+        {
+          title: "Nue: The Japanese Chimera",
+          author: "Yanagita, Kunio",
+          year: 1930,
+          publisher: "Japanese Folklore Society",
+          url: "https://www.japanesefolklore.org/archives/nue-study",
+          type: "journal_article",
+          relevance: "Original research on the nue creature and its cultural significance"
+        }
+      ];
+    }
   }
 } 

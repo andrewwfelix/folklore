@@ -2,6 +2,7 @@ import { BaseAgent } from './base/BaseAgent';
 import { AgentType } from '@/types';
 import { buildArtPrompt } from '@/prompts';
 import OpenAI from 'openai';
+import { config } from '@/config';
 import { QAIssue } from '@/types/qa-feedback';
 import { extractJsonWithFallback } from '@/lib/utils/json-extractor';
 
@@ -17,6 +18,7 @@ export interface ArtPromptAgentInput {
 
 export class ArtPromptAgent extends BaseAgent {
   private openai: OpenAI;
+  private callCount: number = 0;
 
   constructor(id: string, config: any = {}) {
     super(id, 'ArtPrompt Agent', AgentType.DATA_PROCESSOR, config);
@@ -50,6 +52,13 @@ export class ArtPromptAgent extends BaseAgent {
    * Generates art prompt, incorporating QA feedback as explicit instructions if provided.
    */
   private async generateArtPrompt(input: { name: string; region: string; lore: string; qaFeedback?: string | string[] | QAIssue[] | (string | QAIssue)[] }): Promise<any> {
+    // Check if mock mode is enabled
+    if (config.development.mockLLM) {
+      this.callCount++;
+      this.log(`Using mock mode - returning test art prompt (call #${this.callCount})`);
+      return this.getMockArtPrompt(input);
+    }
+
     // Build the base prompt
     let prompt = buildArtPrompt({
       name: input.name,
@@ -96,6 +105,84 @@ export class ArtPromptAgent extends BaseAgent {
     } catch (parseError) {
       this.log('Failed to parse art prompt JSON, retrying...');
       throw new Error(`Invalid JSON in art prompt response: ${parseError}`);
+    }
+  }
+
+  /**
+   * Returns mock art prompt for testing
+   */
+  private getMockArtPrompt(input: any): any {
+    try {
+      const mockData = require('../mocks/mock-artprompt.json');
+      return mockData;
+    } catch (error) {
+      this.log('Failed to load mock art prompt, using fallback');
+      // Fallback to inline data if JSON file fails to load
+      const mockArtPrompts = {
+        'Japan': {
+          theme: 'Japanese Yokai',
+          artistic_style: 'Ukiyo-e',
+          mood: 'Mysterious and eerie',
+          key_visual_elements: [
+            'Traditional Japanese architecture',
+            'Cherry blossoms',
+            'Mystical creatures',
+            'Dark atmospheric lighting'
+          ],
+          description: 'A supernatural creature from Japanese folklore, depicted in traditional ukiyo-e style with rich cultural details and mystical atmosphere.'
+        },
+        'Norse': {
+          theme: 'Norse Mythology',
+          artistic_style: 'Nordic Art',
+          mood: 'Epic and powerful',
+          key_visual_elements: [
+            'Frozen landscapes',
+            'Ancient runes',
+            'Mythical weapons',
+            'Aurora borealis'
+          ],
+          description: 'A mighty being from Norse mythology, portrayed with epic scale and ancient Nordic artistic elements.'
+        },
+        'Greece': {
+          theme: 'Greek Mythology',
+          artistic_style: 'Classical Greek',
+          mood: 'Heroic and divine',
+          key_visual_elements: [
+            'Ancient Greek architecture',
+            'Olympian symbols',
+            'Mediterranean landscapes',
+            'Classical proportions'
+          ],
+          description: 'A legendary creature from Greek mythology, rendered in classical Greek artistic style with heroic proportions.'
+        },
+        'Celtic': {
+          theme: 'Celtic Mythology',
+          artistic_style: 'Celtic Art',
+          mood: 'Mystical and ancient',
+          key_visual_elements: [
+            'Celtic knots and patterns',
+            'Ancient forests',
+            'Mystical symbols',
+            'Natural elements'
+          ],
+          description: 'A mystical being from Celtic folklore, illustrated with traditional Celtic artistic motifs and natural elements.'
+        },
+        'Slavic': {
+          theme: 'Slavic Folklore',
+          artistic_style: 'Slavic Art',
+          mood: 'Mysterious and folkloric',
+          key_visual_elements: [
+            'Traditional Slavic patterns',
+            'Dense forests',
+            'Folkloric symbols',
+            'Rustic settings'
+          ],
+          description: 'A supernatural creature from Slavic folklore, depicted with traditional Slavic artistic elements and folkloric atmosphere.'
+        }
+      };
+
+      const region = input.region || 'Japan';
+      return mockArtPrompts[region as keyof typeof mockArtPrompts] || mockArtPrompts['Japan'];
     }
   }
 

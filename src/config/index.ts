@@ -49,6 +49,7 @@ export interface Config {
     enablePDFGeneration: boolean;     // Whether to generate PDFs
     enableArtGeneration: boolean;     // Whether to generate art prompts
     generatePDF: boolean;             // Whether to generate PDFs (from GENERATE_PDF env var)
+    generateArt: boolean;             // Whether to generate art prompts (from GENERATE_ART env var)
   };
   
   // Quality Settings
@@ -116,6 +117,7 @@ export const config: Config = {
     enablePDFGeneration: process.env['ENABLE_PDF_GENERATION'] !== 'false',
     enableArtGeneration: process.env['ENABLE_ART_GENERATION'] !== 'false',
     generatePDF: process.env['GENERATE_PDF'] !== 'false',
+    generateArt: process.env['GENERATE_ART'] !== 'false',
   },
   
   quality: {

@@ -80,11 +80,12 @@ export interface FolkloreMonster {
   name: string;
   region: string;
   tags: string[];
-  lore: string;
+  lore: any; // JSONB - structured lore content with format and metadata
   statblock: any; // JSONB - will be typed as StatBlock
   status: 'draft' | 'generating' | 'complete' | 'error';
   image_url?: string;
   pdf_url?: string;
+  monster_markup?: string; // Formatted content with HTML/markdown markup for stat block rendering
   embedding?: number[]; // vector(1536)
   created_at: string;
   updated_at: string;

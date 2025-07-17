@@ -64,55 +64,61 @@ async function orchestrateMonster(index: number) {
   });
   console.log(`[${index}] QA Review:`, qaResult.qaReview);
 
-  // 6. PDF Layout
-  const pdfAgent = new PDFAgent(`pdf-${index}`);
-  const pdfResult = await pdfAgent.execute({
-    name: monsterName,
-    region: monsterRegion,
-    lore,
-    statblock: statBlockResult.statblock,
-    citations: citationResult.citations,
-    artPrompt: artPromptResult.artPrompt
-  });
-  console.log(`[${index}] PDF Layout:`, pdfResult.pdfLayout);
-
-  // 7. File Storage (PDF and Image)
+  // 6. PDF Layout (only if enabled)
+  let pdfResult: any = { pdfLayout: null };
   let pdfUrl: string | undefined;
   let imageUrl: string | undefined;
   
-  try {
-    console.log(`[${index}] Generating PDF and uploading files...`);
-    
-    // Generate actual PDF from the layout
-    let pdfContent: Buffer;
+  if (config.generation.generatePDF) {
+    console.log(`[${index}] Generating PDF layout...`);
+    const pdfAgent = new PDFAgent(`pdf-${index}`);
+    pdfResult = await pdfAgent.execute({
+      name: monsterName,
+      region: monsterRegion,
+      lore,
+      statblock: statBlockResult.statblock,
+      citations: citationResult.citations,
+      artPrompt: artPromptResult.artPrompt
+    });
+    console.log(`[${index}] PDF Layout:`, pdfResult.pdfLayout);
+
+    // 7. File Storage (PDF and Image)
     try {
-      // Try to use the PDF layout from PDFAgent
-      pdfContent = await generatePDF(pdfResult.pdfLayout);
-    } catch (pdfError) {
-      console.log(`[${index}] PDF layout generation failed, using fallback:`, (pdfError as Error).message);
-      // Fallback to simple PDF generation
-      pdfContent = await generateSimplePDF(
-        monsterName,
-        lore,
-        statBlockResult.statblock,
-        citationResult.citations,
-        artPromptResult.artPrompt
-      );
+      console.log(`[${index}] Generating PDF and uploading files...`);
+      
+      // Generate actual PDF from the layout
+      let pdfContent: Buffer;
+      try {
+        // Try to use the PDF layout from PDFAgent
+        pdfContent = await generatePDF(pdfResult.pdfLayout);
+      } catch (pdfError) {
+        console.log(`[${index}] PDF layout generation failed, using fallback:`, (pdfError as Error).message);
+        // Fallback to simple PDF generation
+        pdfContent = await generateSimplePDF(
+          monsterName,
+          lore,
+          statBlockResult.statblock,
+          citationResult.citations,
+          artPromptResult.artPrompt
+        );
+      }
+      
+      // For now, create placeholder image content
+      // In the future, this would be generated from artPrompt using DALL-E or similar
+      const imageContent = Buffer.from(`Placeholder image for ${monsterName}`);
+      
+      const pdfUploadResult = await uploadPDF(monsterName, pdfContent);
+      const imageUploadResult = await uploadImage(monsterName, imageContent);
+      
+      pdfUrl = pdfUploadResult.url;
+      imageUrl = imageUploadResult.url;
+      
+      console.log(`[${index}] Files uploaded: PDF=${pdfUrl}, Image=${imageUrl}`);
+    } catch (error) {
+      console.error(`[${index}] File upload failed:`, (error as Error).message);
     }
-    
-    // For now, create placeholder image content
-    // In the future, this would be generated from artPrompt using DALL-E or similar
-    const imageContent = Buffer.from(`Placeholder image for ${monsterName}`);
-    
-    const pdfUploadResult = await uploadPDF(monsterName, pdfContent);
-    const imageUploadResult = await uploadImage(monsterName, imageContent);
-    
-    pdfUrl = pdfUploadResult.url;
-    imageUrl = imageUploadResult.url;
-    
-    console.log(`[${index}] Files uploaded: PDF=${pdfUrl}, Image=${imageUrl}`);
-  } catch (error) {
-    console.error(`[${index}] File upload failed:`, (error as Error).message);
+  } else {
+    console.log(`[${index}] Skipping PDF generation (disabled)`);
   }
 
   // Return all results for this monster
